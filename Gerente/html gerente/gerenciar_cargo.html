@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gerenciar Cargos</title>
+  <link rel="stylesheet" href="../style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<header class="top-bar">
+  <h1>Gerenciar Cargos</h1>
+  <div class="top-right-buttons">
+    <button onclick="window.location.href='menu_gerente.html'">Voltar ao Menu</button>
+  </div>
+</header>
+
+<main>
+  <div class="gerenciar-produtos-container">
+    <h2>Cadastro / Edição de Cargo</h2>
+
+    <button id="selecionar-cargo-btn" onclick="toggleListaCargos()">Selecionar Cargo</button>
+    <ul id="lista-cargos" style="display:none;"></ul>
+
+    <form id="form-cargo" onsubmit="salvarCargo(event)">
+      <label for="cargo-id">ID do Cargo:</label>
+      <input type="number" id="cargo-id" required />
+
+      <label for="cargo-nome">Nome do Cargo:</label>
+      <input type="text" id="cargo-nome" required />
+
+      <button type="submit">Salvar Cargo</button>
+      <button type="button" onclick="excluirCargo()">Excluir Cargo</button>
+    </form>
+  </div>
+</main>
+
+<script>
+  let cargos = [];
+  let cargoEditando = null;
+
+  async function carregarCargos() {
+    const res = await fetch('http://localhost:3001/cargo');
+    cargos = await res.json();
+    atualizarListaCargos();
+  }
+
+  function toggleListaCargos() {
+    const lista = document.getElementById('lista-cargos');
+    if (lista.style.display === 'block') {
+      lista.style.display = 'none';
+    } else {
+      carregarCargos();
+      lista.style.display = 'block';
+    }
+  }
+
+  function atualizarListaCargos() {
+    const lista = document.getElementById('lista-cargos');
+    lista.innerHTML = '';
+    cargos.forEach((cargo, index) => {
+      const li = document.createElement('li');
+      li.textContent = `ID: ${cargo.idcargo} - ${cargo.nomecargo}`;
+      li.onclick = () => {
+        carregarCargo(index);
+        lista.style.display = 'none';
+      };
+      lista.appendChild(li);
+    });
+  }
+
+  function carregarCargo(index) {
+    const cargo = cargos[index];
+    if (cargo) {
+      cargoEditando = index;
+      document.getElementById('cargo-id').value = cargo.idcargo;
+      document.getElementById('cargo-nome').value = cargo.nomecargo;
+      document.getElementById('cargo-id').disabled = true;
+    }
+  }
+
+  async function salvarCargo(event) {
+    event.preventDefault();
+    if (cargoEditando === null) {
+      alert('Selecione um cargo para editar.');
+      return;
+    }
+    const cargo = cargos[cargoEditando];
+    const idCargo = document.getElementById('cargo-id').value;
+    const nomeCargo = document.getElementById('cargo-nome').value.trim();
+    if (!idCargo || !nomeCargo) {
+      alert('Preencha todos os campos corretamente!');
+      return;
+    }
+    const novoCargo = {
+      idCargo,
+      nomeCargo
+    };
+    const res = await fetch(`http://localhost:3001/cargo/${encodeURIComponent(idCargo)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(novoCargo)
+    });
+    const data = await res.json();
+    if (data.error) {
+      alert(data.error);
+    } else {
+      alert(data.mensagem || 'Cargo atualizado!');
+      limparFormulario();
+      await carregarCargos();
+    }
+  }
+
+  async function excluirCargo() {
+    if (cargoEditando === null) {
+      alert('Selecione um cargo para excluir.');
+      return;
+    }
+    const cargo = cargos[cargoEditando];
+    const confirmacao = confirm('Tem certeza que deseja excluir este cargo?');
+    if (confirmacao) {
+      const res = await fetch(`http://localhost:3001/cargo/${encodeURIComponent(cargo.idcargo)}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.error) {
+        alert(data.error);
+      } else {
+        alert(data.mensagem || 'Cargo excluído.');
+        limparFormulario();
+        await carregarCargos();
+      }
+    }
+  }
+
+  function limparFormulario() {
+    cargoEditando = null;
+    document.getElementById('form-cargo').reset();
+    document.getElementById('cargo-id').disabled = false;
+  }
+
+  window.addEventListener('DOMContentLoaded', carregarCargos);
+</script>
+
+</body>
+</html>

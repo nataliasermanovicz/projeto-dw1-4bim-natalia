@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Carrinho</title>
+  <link rel="stylesheet" href="../style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+  <style>
+#pagina-carrinho {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 500px;
+  margin: 40px auto;
+  background-color: #fff;
+  padding: 36px 32px 32px 32px;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+}
+#pagina-carrinho h2, #pagina-carrinho h3 {
+  text-align: center;
+}
+#pagina-carrinho ul {
+  width: 100%;
+  margin-bottom: 20px;
+}
+.botoes-carrinho-centro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+#pagina-carrinho button {
+  width: 100%;
+  min-height: 48px;
+  background-color: #8B1E3F;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 17px;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+  margin-bottom: 0;
+  margin-top: 0;
+  display: block;
+}
+#pagina-carrinho button:hover {
+  background-color: #7a1634;
+}
+.botoes-pagamento-coluna {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin: 12px 0 0 0;
+}
+.btn-pagamento-finalizar {
+  width: 220px;
+  min-height: 44px;
+  font-size: 16px;
+  background-color: #8B1E3F;
+  color: #fff;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 0;
+  margin-bottom: 0;
+  transition: background-color 0.3s ease;
+}
+.btn-pagamento-finalizar:hover {
+  background-color: #7a1634;
+}
+@media (max-width: 600px) {
+  #pagina-carrinho {
+    max-width: 98vw;
+    padding: 10vw 2vw;
+    min-height: 80vh;
+  }
+}
+</style>
+</head>
+<body onload="mostrarCarrinho()">
+
+  <header class="top-bar" id="header-carrinho-gerente">
+    <div class="top-right-buttons">
+      <button onclick="window.location.href='menu_gerente.html'">Página inicial</button>
+    </div>
+  </header>
+
+  <section id="pagina-carrinho" style="display: none;">
+    <h2>Carrinho</h2>
+    <ul id="lista-carrinho"></ul>
+    <h3>Total: R$ <span id="total"></span></h3>
+    <div class="botoes-carrinho-centro">
+      <button id="btn-finalizar-compra" onclick="mostrarFormaPagamento()">Finalizar Compra</button>
+    </div>
+    <section id="forma-pagamento" style="display: none;">
+      <h4>Escolha a forma de pagamento:</h4>
+      <div class="botoes-pagamento-coluna" style="margin-bottom: 18px;">
+        <button onclick="pagarComCartao()">Pagar com Cartão</button>
+        <button onclick="pagarPIX()" style="margin-bottom: 12px;">Pagar com PIX</button>
+      </div>
+    </section>
+
+    <section id="pagamento-cartao" style="display: none; text-align: center;">
+      <h4 style="text-align: center; font-size: 1.15rem; color: #444; margin-bottom: 16px;">Pagamento com Cartão</h4>
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <input type="text" id="numero-cartao" placeholder="Número do cartão" maxlength="19" oninput="formatarCartao(this)" style="width: 90%; max-width: 320px; padding: 12px; font-size: 17px; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 18px; text-align: center; background: #f8f8f8; color: #333; box-shadow: 0 2px 8px rgba(0,0,0,0.04); outline: none; transition: border 0.2s;" inputmode="numeric" pattern="[0-9 ]*" />
+        <button onclick="finalizarCompraCartao()" class="btn-pagamento-finalizar">Finalizar Compra</button>
+      </div>
+    </section>
+
+    <section id="pagamento-pix" style="display: none;"></section>
+
+    <section id="qrcode-area" class="qrcode-area" style="display: none; text-align: center;">
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <span style="font-size: 1.1rem; color: #444; margin-bottom: 12px;">Escaneie o QR Code para pagar com PIX</span>
+        <div id="qrcode" style="margin-bottom: 18px;"></div>
+        <button onclick="finalizarCompraPix()" class="btn-pagamento-finalizar">Finalizar Compra</button>
+      </div>
+    </section>
+  </section>
+
+  <section id="mensagem-final" style="display: none; text-align: center;">
+    <h2 style="margin-top: 60px; font-size: 2rem; color: #8B1E3F; font-weight: 600;">Compra finalizada com sucesso!</h2>
+  </section>
+
+  <!-- QRCode.js -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+  <script>
+let usuarioLogado = localStorage.getItem('usuarioLogado');
+
+async function mostrarCarrinho() {
+  let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+  const res = await fetch('http://localhost:3000/api/produtos');
+  const produtos = await res.json();
+  carrinho = carrinho.map(item => {
+    const prodAtual = produtos.find(p => p.id === item.id);
+    return prodAtual ? { ...item, ...prodAtual } : item;
+  });
+  const lista = document.getElementById('lista-carrinho');
+  const totalSpan = document.getElementById('total');
+  lista.innerHTML = '';
+  let total = 0;
+  carrinho.forEach(item => {
+    const li = document.createElement('li');
+    li.textContent = `${item.nome} - Quantidade: ${item.quantidade} - Preço: R$ ${item.preco.toFixed(2)}`;
+    lista.appendChild(li);
+    total += item.quantidade * item.preco;
+  });
+  totalSpan.textContent = total.toFixed(2);
+  window.valorFinalCalculado = total;
+  window.carrinhoVazio = (carrinho.length === 0);
+  document.getElementById('pagina-carrinho').style.display = 'block';
+}
+
+function mostrarFormaPagamento() {
+  if (window.carrinhoVazio) {
+    alert('Escolha algum produto da loja para continuar a compra.');
+    return;
+  }
+  if (localStorage.getItem('usuarioLogado') !== 'true') {
+    alert('Você precisa estar logado para finalizar a compra. Por favor, faça login.');
+    window.location.href = 'login.html';
+    return;
+  }
+  document.getElementById('forma-pagamento').style.display = 'block';
+  document.getElementById('btn-finalizar-compra').style.display = 'none';
+}
+
+function pagarComCartao() {
+    document.getElementById('pagamento-cartao').style.display = 'block';
+    document.getElementById('pagamento-pix').style.display = 'none';
+    document.getElementById('qrcode-area').style.display = 'none';
+}
+
+function pagarPIX() {
+    document.getElementById('pagamento-pix').style.display = 'block';
+    document.getElementById('pagamento-cartao').style.display = 'none';
+    document.getElementById('qrcode-area').style.display = 'block';
+    // Gera o QRCode sempre que clicar em Pagar com Pix
+    gerarQRCodePix(window.valorFinalCalculado ? window.valorFinalCalculado.toFixed(2) : '0.00');
+}
+
+// Função para garantir que o QRCode é gerado ao exibir o PIX
+function gerarQRCodePix(valor) {
+  const chavePix = '02964990999';
+  const nome = 'Celso Mainko';
+  const cidade = 'SAO PAULO';
+  const descricao = 'Pagamento NailPolish';
+  function format(id, value) {
+    const length = value.length.toString().padStart(2, '0');
+    return id + length + value;
+  }
+  let payload = format('00', '01') +
+                format('26', format('00', 'BR.GOV.BCB.PIX') + format('01', chavePix) + format('02', descricao)) +
+                format('52', '0000') +
+                format('53', '986') +
+                format('54', valor) +
+                format('58', 'BR') +
+                format('59', nome) +
+                format('60', cidade) +
+                format('62', format('05', '***')) +
+                '6304';
+  function crc16(str) {
+    let crc = 0xFFFF;
+    for (let c = 0; c < str.length; c++) {
+      crc ^= str.charCodeAt(c) << 8;
+      for (let i = 0; i < 8; i++) {
+        crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : crc << 1;
+        crc &= 0xFFFF;
+      }
+    }
+    return crc.toString(16).toUpperCase().padStart(4, '0');
+  }
+  const payloadFinal = payload + crc16(payload);
+  const qrDiv = document.getElementById('qrcode');
+  qrDiv.innerHTML = '';
+  document.getElementById('qrcode-area').style.display = 'block';
+  new QRCode(qrDiv, payloadFinal);
+}
+
+function finalizarCompraCartao() {
+  const numeroCartao = document.getElementById('numero-cartao').value.trim();
+  if (!numeroCartao) {
+    alert('Digite o número do cartão para finalizar a compra.');
+    return;
+  }
+  concluirCompra();
+}
+
+function finalizarCompraPix() {
+    document.getElementById('qrcode-area').style.display = 'block';
+    concluirCompra();
+}
+
+function concluirCompra() {
+  localStorage.removeItem('carrinho');
+  document.getElementById('pagina-carrinho').style.display = 'none';
+  document.getElementById('mensagem-final').style.display = 'block';
+  // Esconde header/topo
+  var header = document.getElementById('header-carrinho-gerente');
+  if (header) header.style.display = 'none';
+  // Redireciona para o menu após 2 segundos
+  setTimeout(function() {
+    window.location.href = 'menu_gerente.html';
+  }, 2000);
+}
+
+// Esconde os botões de pagamento e mostra o de finalizar compra ao alternar de página
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('forma-pagamento').style.display = 'none';
+  document.getElementById('pagamento-cartao').style.display = 'none';
+  document.getElementById('pagamento-pix').style.display = 'none';
+  document.getElementById('qrcode-area').style.display = 'none';
+  const btnFinalizar = document.getElementById('btn-finalizar-compra');
+  if (btnFinalizar) btnFinalizar.style.display = 'block';
+});
+
+function formatarCartao(input) {
+  // Permite apenas números e formata como cartão (#### #### #### ####)
+  let value = input.value.replace(/\D/g, '');
+  value = value.substring(0, 16);
+  value = value.replace(/(\d{4})(?=\d)/g, '$1 ');
+  input.value = value;
+}
+</script>
+
+  
+</body>
+</html>

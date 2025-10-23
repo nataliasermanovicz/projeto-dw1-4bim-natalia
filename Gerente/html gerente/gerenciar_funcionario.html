@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gerenciar Funcionários</title>
+  <link rel="stylesheet" href="../style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<header class="top-bar">
+  <h1>Gerenciar Funcionários</h1>
+  <div class="top-right-buttons">
+    <button onclick="window.location.href='menu_gerente.html'">Voltar ao Menu</button>
+  </div>
+</header>
+
+<main>
+  <div class="gerenciar-produtos-container">
+    <h2>Cadastro / Edição de Funcionário</h2>
+
+    <button id="selecionar-funcionario-btn" onclick="toggleListaFuncionarios()">Selecionar Funcionário</button>
+    <ul id="lista-funcionarios" style="display:none;"></ul>
+
+    <form id="form-funcionario" onsubmit="salvarFuncionario(event)">
+      <label for="funcionario-nome">Nome:</label>
+      <input type="text" id="funcionario-nome" required />
+
+      <label for="funcionario-data">Data de Nascimento:</label>
+      <input type="date" id="funcionario-data" required />
+
+      <label for="funcionario-email">Email:</label>
+      <input type="email" id="funcionario-email" required />
+
+      <label for="funcionario-senha">Senha:</label>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <input type="password" id="funcionario-senha" required />
+        <button type="button" id="toggleSenha" tabindex="-1" style="padding:2px 8px;">👁️</button>
+      </div>
+
+      <label for="funcionario-salario">Salário:</label>
+      <input type="number" id="funcionario-salario" step="0.01" required />
+
+      <label for="funcionario-cargo">Cargo (ID):</label>
+      <input type="number" id="funcionario-cargo" required />
+
+      <button type="submit">Salvar Funcionário</button>
+      <button type="button" onclick="excluirFuncionario()">Excluir Funcionário</button>
+    </form>
+  </div>
+</main>
+
+<script>
+  let funcionarios = [];
+  let funcionarioEditando = null;
+
+  async function carregarFuncionarios() {
+    const res = await fetch('http://localhost:3001/funcionario');
+    funcionarios = await res.json();
+    atualizarListaFuncionarios();
+  }
+
+  function toggleListaFuncionarios() {
+    const lista = document.getElementById('lista-funcionarios');
+    if (lista.style.display === 'block') {
+      lista.style.display = 'none';
+    } else {
+      carregarFuncionarios();
+      lista.style.display = 'block';
+    }
+  }
+
+  function atualizarListaFuncionarios() {
+    const lista = document.getElementById('lista-funcionarios');
+    lista.innerHTML = '';
+    funcionarios.forEach((funcionario, index) => {
+      const nomeExibir = funcionario.nomepessoa || funcionario.pessoacpfpessoa || funcionario.emailpessoa || 'Funcionário';
+      const li = document.createElement('li');
+      li.textContent = `${nomeExibir}`;
+      li.onclick = () => {
+        carregarFuncionario(index);
+        lista.style.display = 'none';
+      };
+      lista.appendChild(li);
+    });
+  }
+
+  function carregarFuncionario(index) {
+    const funcionario = funcionarios[index];
+    if (funcionario) {
+      funcionarioEditando = index;
+      document.getElementById('funcionario-nome').value = funcionario.nomepessoa || '';
+      document.getElementById('funcionario-data').value = funcionario.datanascimentopessoa ? funcionario.datanascimentopessoa.split('T')[0] : '';
+      document.getElementById('funcionario-email').value = funcionario.emailpessoa || '';
+      document.getElementById('funcionario-senha').value = funcionario.senhapessoa || '';
+      document.getElementById('funcionario-salario').value = funcionario.salario || '';
+      document.getElementById('funcionario-cargo').value = funcionario.cargosidcargo || '';
+      document.getElementById('funcionario-email').disabled = true;
+    }
+  }
+
+  async function salvarFuncionario(event) {
+    event.preventDefault();
+    if (funcionarioEditando === null) {
+      alert('Selecione um funcionário para editar.');
+      return;
+    }
+    const funcionario = funcionarios[funcionarioEditando];
+    const nome = document.getElementById('funcionario-nome').value.trim();
+    const dataNascimento = document.getElementById('funcionario-data').value;
+    const email = document.getElementById('funcionario-email').value;
+    const senha = document.getElementById('funcionario-senha').value;
+    const salario = document.getElementById('funcionario-salario').value;
+    const cargosIdCargo = document.getElementById('funcionario-cargo').value;
+    if (!nome || !dataNascimento || !email || !senha || !salario || !cargosIdCargo) {
+      alert('Preencha todos os campos corretamente!');
+      return;
+    }
+    const novoFuncionario = {
+      nomePessoa: nome,
+      dataNascimentoPessoa: dataNascimento,
+      emailPessoa: email,
+      senhaPessoa: senha,
+      salario,
+      CargosIdCargo: cargosIdCargo
+    };
+    const res = await fetch(`http://localhost:3001/funcionario/${encodeURIComponent(funcionario.pessoacpfpessoa)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(novoFuncionario)
+    });
+    const data = await res.json();
+    if (data.error) {
+      alert(data.error);
+    } else {
+      alert(data.mensagem || 'Funcionário atualizado!');
+      limparFormulario();
+      await carregarFuncionarios();
+    }
+  }
+
+  async function excluirFuncionario() {
+    if (funcionarioEditando === null) {
+      alert('Selecione um funcionário para excluir.');
+      return;
+    }
+    const funcionario = funcionarios[funcionarioEditando];
+    const confirmacao = confirm('Tem certeza que deseja excluir este funcionário?');
+    if (confirmacao) {
+      const res = await fetch(`http://localhost:3001/funcionario/${encodeURIComponent(funcionario.pessoacpfpessoa)}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.error) {
+        alert(data.error);
+      } else {
+        alert(data.mensagem || 'Funcionário excluído.');
+        limparFormulario();
+        await carregarFuncionarios();
+      }
+    }
+  }
+
+  function limparFormulario() {
+    funcionarioEditando = null;
+    document.getElementById('form-funcionario').reset();
+    document.getElementById('funcionario-email').disabled = false;
+  }
+
+  // Mostrar/ocultar senha
+  document.addEventListener('DOMContentLoaded', function() {
+    const senhaInput = document.getElementById('funcionario-senha');
+    const toggleBtn = document.getElementById('toggleSenha');
+    if (toggleBtn) {
+      toggleBtn.onclick = function() {
+        if (senhaInput.type === 'password') {
+          senhaInput.type = 'text';
+          toggleBtn.textContent = '🙈';
+        } else {
+          senhaInput.type = 'password';
+          toggleBtn.textContent = '👁️';
+        }
+      };
+    }
+  });
+
+  window.addEventListener('DOMContentLoaded', carregarFuncionarios);
+</script>
+
+</body>
+</html>
