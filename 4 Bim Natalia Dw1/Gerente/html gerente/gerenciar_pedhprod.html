@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gerenciar PedidoHasProduto</title>
+  <link rel="stylesheet" href="../style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<header class="top-bar">
+  <h1>Gerenciar PedidoHasProduto</h1>
+  <div class="top-right-buttons">
+    <button onclick="window.location.href='menu_gerente.html'">Voltar ao Menu</button>
+  </div>
+</header>
+
+<main>
+  <div class="gerenciar-produtos-container">
+    <h2>Cadastro / Edição de PedidoHasProduto</h2>
+
+    <button id="selecionar-pedhprod-btn" onclick="toggleListaPedHProd()">Selecionar Pedido/Produto</button>
+    <ul id="lista-pedhprod" style="display:none;"></ul>
+
+    <form id="form-pedhprod" onsubmit="salvarPedHProd(event)">
+      <label for="pedhprod-pedido">ID do Pedido:</label>
+      <input type="number" id="pedhprod-pedido" required />
+
+      <label for="pedhprod-produto">ID do Produto:</label>
+      <input type="number" id="pedhprod-produto" required />
+
+      <label for="pedhprod-quantidade">Quantidade:</label>
+      <input type="number" id="pedhprod-quantidade" required />
+
+      <label for="pedhprod-preco">Preço Unitário:</label>
+      <input type="number" id="pedhprod-preco" step="0.01" required />
+
+      <button type="submit">Salvar</button>
+      <button type="button" onclick="excluirPedHProd()">Excluir</button>
+    </form>
+  </div>
+</main>
+
+<script>
+  let pedhprods = [];
+  let pedhprodEditando = null;
+
+  async function carregarPedHProds() {
+    const res = await fetch('http://localhost:3001/PedidoHasProduto');
+    pedhprods = await res.json();
+    atualizarListaPedHProds();
+  }
+
+  function toggleListaPedHProd() {
+    const lista = document.getElementById('lista-pedhprod');
+    if (lista.style.display === 'block') {
+      lista.style.display = 'none';
+    } else {
+      carregarPedHProds();
+      lista.style.display = 'block';
+    }
+  }
+
+  function atualizarListaPedHProds() {
+    const lista = document.getElementById('lista-pedhprod');
+    lista.innerHTML = '';
+    pedhprods.forEach((item, index) => {
+      const li = document.createElement('li');
+      li.textContent = `Pedido: ${item.pedidoidpedido} | Produto: ${item.produtoidproduto} | Qtd: ${item.quantidade} | Preço: ${item.precounitario}`;
+      li.onclick = () => {
+        carregarPedHProd(index);
+        lista.style.display = 'none';
+      };
+      lista.appendChild(li);
+    });
+  }
+
+  function carregarPedHProd(index) {
+    const item = pedhprods[index];
+    if (item) {
+      pedhprodEditando = index;
+      document.getElementById('pedhprod-pedido').value = item.pedidoidpedido;
+      document.getElementById('pedhprod-produto').value = item.produtoidproduto;
+      document.getElementById('pedhprod-quantidade').value = item.quantidade;
+      document.getElementById('pedhprod-preco').value = item.precounitario;
+      document.getElementById('pedhprod-pedido').disabled = true;
+      document.getElementById('pedhprod-produto').disabled = true;
+    }
+  }
+
+  async function salvarPedHProd(event) {
+    event.preventDefault();
+    if (pedhprodEditando === null) {
+      alert('Selecione um registro para editar.');
+      return;
+    }
+    const item = pedhprods[pedhprodEditando];
+    const PedidoIdPedido = document.getElementById('pedhprod-pedido').value;
+    const ProdutoIdProduto = document.getElementById('pedhprod-produto').value;
+    const quantidade = document.getElementById('pedhprod-quantidade').value;
+    const precoUnitario = document.getElementById('pedhprod-preco').value;
+    if (!PedidoIdPedido || !ProdutoIdProduto || !quantidade || !precoUnitario) {
+      alert('Preencha todos os campos corretamente!');
+      return;
+    }
+    const novoItem = {
+      PedidoIdPedido,
+      ProdutoIdProduto,
+      quantidade,
+      precoUnitario
+    };
+    const res = await fetch(`http://localhost:3001/PedidoHasProduto/${encodeURIComponent(ProdutoIdProduto)}/${encodeURIComponent(PedidoIdPedido)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(novoItem)
+    });
+    const data = await res.json();
+    if (data.error) {
+      alert(data.error);
+    } else {
+      alert(data.mensagem || 'Registro atualizado!');
+      limparFormulario();
+      await carregarPedHProds();
+    }
+  }
+
+  async function excluirPedHProd() {
+    if (pedhprodEditando === null) {
+      alert('Selecione um registro para excluir.');
+      return;
+    }
+    const item = pedhprods[pedhprodEditando];
+    const confirmacao = confirm('Tem certeza que deseja excluir este registro?');
+    if (confirmacao) {
+      const res = await fetch(`http://localhost:3001/PedidoHasProduto/${encodeURIComponent(item.produtoidproduto)}/${encodeURIComponent(item.pedidoidpedido)}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.error) {
+        alert(data.error);
+      } else {
+        alert(data.mensagem || 'Registro excluído.');
+        limparFormulario();
+        await carregarPedHProds();
+      }
+    }
+  }
+
+  function limparFormulario() {
+    pedhprodEditando = null;
+    document.getElementById('form-pedhprod').reset();
+    document.getElementById('pedhprod-pedido').disabled = false;
+    document.getElementById('pedhprod-produto').disabled = false;
+  }
+
+  window.addEventListener('DOMContentLoaded', carregarPedHProds);
+</script>
+
+</body>
+</html>

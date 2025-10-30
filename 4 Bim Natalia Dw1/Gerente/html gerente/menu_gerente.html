@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nail Polish - Gerente</title>
+  <link rel="stylesheet" href="../style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+  <style>
+    .perfil-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #8B1E3F;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      font-size: 20px;
+      user-select: none;
+      position: relative;
+    }
+
+    .gerenciar-menu {
+      display: none;
+      position: absolute;
+      background-color: white;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 10px;
+      margin-top: 5px;
+      z-index: 1000;
+    }
+
+    .gerenciar-menu a {
+      display: block;
+      padding: 5px 10px;
+      color: #333;
+      text-decoration: none;
+    }
+
+    .gerenciar-menu a:hover {
+      background-color: #f0f0f0;
+    }
+
+    .gerenciar-container {
+      position: relative;
+      display: inline-block;
+    }
+
+    .top-right-buttons {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .left-buttons {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-right: auto;
+    }
+
+    header.top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+    }
+
+    /* Menu dropdown do perfil */
+    .perfil-container {
+      position: relative;
+      display: inline-block;
+    }
+
+    #menuPerfil {
+      display: none;
+      position: absolute;
+      right: 0;
+      background-color: white;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-top: 5px;
+      z-index: 1000;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      width: 110px;
+    }
+
+    #menuPerfil button {
+      background-color: #8B1E3F;
+      border: none;
+      color: white;
+      width: 100%;
+      padding: 8px 0;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    #menuPerfil button:hover {
+      background-color: #7a1634;
+    }
+  </style>
+</head>
+<body>
+
+<header class="top-bar">
+  <h1>Bem-vindo(a) Gerente!</h1>
+  <div class="top-right-buttons">
+    <div class="left-buttons">
+      <button onclick="window.location.href='carrinho_gerente.html'">Ver Carrinho 🛒</button>
+      <div class="gerenciar-container">
+        <button onclick="toggleGerenciar()">Gerenciar</button>
+        <div id="gerenciarMenu" class="gerenciar-menu">
+          <a href="gerenciar_prod.html">Gerenciar Produtos</a>
+          <a href="gerenciar_cliente.html">Gerenciar Clientes</a>
+          <a href="gerenciar_funcionario.html">Gerenciar Funcionários</a>
+          <a href="gerenciar_cargo.html">Gerenciar Cargos</a>
+          <a href="gerenciar_pedhprod.html">Gerenciar PedidoHasProduto</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="perfil-container">
+      <div class="perfil-icon" id="perfilIcon">👑</div>
+      <div id="menuPerfil">
+        <button onclick="logout()">Sair</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main id="home">
+  <section class="produtos" id="produtos-lista-gerente">
+    <!-- Produtos serão carregados via JS -->
+  </section>
+</main>
+
+<script>
+function toggleGerenciar() {
+  const menu = document.getElementById('gerenciarMenu');
+  menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+}
+
+// Controla o menu do perfil
+const perfilIcon = document.getElementById('perfilIcon');
+const menuPerfil = document.getElementById('menuPerfil');
+perfilIcon.addEventListener('click', function(event) {
+  event.stopPropagation();
+  menuPerfil.style.display = (menuPerfil.style.display === 'block') ? 'none' : 'block';
+});
+document.addEventListener('click', function() {
+  menuPerfil.style.display = 'none';
+});
+
+// Carregar produtos do backend
+async function carregarProdutosGerente() {
+  const res = await fetch('http://localhost:3000/api/produtos');
+  const produtos = await res.json();
+  const lista = document.getElementById('produtos-lista-gerente');
+  lista.innerHTML = '';
+  produtos.forEach(prod => {
+    const article = document.createElement('article');
+    article.className = 'produto';
+    article.innerHTML = `
+      <img src="${prod.imagem}" alt="${prod.nome}">
+      <p>${prod.nome}</p>
+      <button onclick=\"window.location.href='produto_gerente.html?id=${prod.id}'\">Ver mais</button>
+    `;
+    lista.appendChild(article);
+  });
+}
+window.addEventListener('DOMContentLoaded', carregarProdutosGerente);
+</script>
+
+<script>
+  function logout() {
+    localStorage.removeItem('usuarioLogado');
+    localStorage.removeItem('perfilUsuario');
+    window.location.href = '../html inicial/menu.html';
+  }
+</script>
+
+  
+</script>
+</body>
+</html>

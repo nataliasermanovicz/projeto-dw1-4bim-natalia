@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gerenciar Produtos</title>
+  <link rel="stylesheet" href="../style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<header class="top-bar">
+  <h1>Gerenciar Produtos</h1>
+  <div class="top-right-buttons">
+    <button onclick="window.location.href='menu_gerente.html'">Voltar ao Menu</button>
+  </div>
+</header>
+
+<main>
+  <div class="gerenciar-produtos-container">
+    <h2>Cadastro / Edição de Produto</h2>
+
+    <button id="selecionar-produto-btn" onclick="toggleListaProdutos()">Selecionar Produto</button>
+    <ul id="lista-produtos" style="display:none;"></ul>
+
+    <form id="form-produto" onsubmit="salvarProduto(event)">
+      <label for="produto-id">ID:</label>
+      <input type="number" id="produto-id" required />
+
+      <label for="produto-nome">Nome:</label>
+      <input type="text" id="produto-nome" required />
+
+      <label for="produto-descricao">Descrição:</label>
+      <input type="text" id="produto-descricao" required />
+
+<label for="produto-imagem-link">Link da Imagem:</label>
+<input type="url" id="produto-imagem-link" placeholder="Cole o link da imagem aqui" required />
+
+
+      <label for="produto-preco">Preço:</label>
+      <input type="number" step="0.01" id="produto-preco" required />
+
+      <button type="submit">Salvar Produto</button>
+      <button type="button" onclick="excluirProduto()">Excluir Produto</button>
+      <button type="button" onclick="limparFormulario()">Novo Produto</button>
+    </form>
+  </div>
+</main>
+
+<script>
+  let produtos = [];
+  let produtoEditando = null;
+
+  async function carregarProdutos() {
+    const res = await fetch('http://localhost:3000/api/produtos');
+    produtos = await res.json();
+    atualizarListaProdutos();
+  }
+
+  function toggleListaProdutos() {
+    const lista = document.getElementById('lista-produtos');
+    if (lista.style.display === 'block') {
+      lista.style.display = 'none';
+    } else {
+      atualizarListaProdutos();
+      lista.style.display = 'block';
+    }
+  }
+
+  function atualizarListaProdutos() {
+    const lista = document.getElementById('lista-produtos');
+    lista.innerHTML = '';
+    produtos.forEach(prod => {
+      const li = document.createElement('li');
+      li.textContent = `ID: ${prod.id} - ${prod.nome}`;
+      li.onclick = () => {
+        carregarProduto(prod.id);
+        lista.style.display = 'none';
+      };
+      lista.appendChild(li);
+    });
+  }
+
+  function carregarProduto(id) {
+    const produto = produtos.find(p => p.id == id);
+    if (produto) {
+      produtoEditando = produto;
+      document.getElementById('produto-id').value = produto.id;
+      document.getElementById('produto-nome').value = produto.nome;
+      document.getElementById('produto-descricao').value = produto.descricao;
+      document.getElementById('produto-imagem-link').value = produto.imagem || '';
+      document.getElementById('produto-preco').value = produto.preco;
+    }
+  }
+
+  async function salvarProduto(event) {
+    event.preventDefault();
+    const id = parseInt(document.getElementById('produto-id').value);
+    const nome = document.getElementById('produto-nome').value.trim();
+    const descricao = document.getElementById('produto-descricao').value.trim();
+    const preco = parseFloat(document.getElementById('produto-preco').value);
+    const imagemLink = document.getElementById('produto-imagem-link').value.trim();
+    let imagem = null;
+    if (imagemLink) {
+      // Chama backend para baixar imagem e retorna o caminho salvo
+      const resImg = await fetch('http://localhost:3000/api/baixar-imagem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: imagemLink })
+      });
+      const dataImg = await resImg.json();
+      if (dataImg.erro) {
+        alert('Erro ao baixar imagem: ' + dataImg.erro);
+        return;
+      }
+      imagem = dataImg.caminho;
+    } else if (produtoEditando) {
+      imagem = produtoEditando.imagem;
+    } else {
+      alert('Informe o link da imagem do produto.');
+      return;
+    }
+    if (!id || !nome || !descricao || isNaN(preco) || !imagem) {
+      alert('Preencha todos os campos corretamente!');
+      return;
+    }
+    const novoProduto = { id, nome, descricao, imagem, preco };
+    const existe = produtos.find(p => p.id == id);
+    let res;
+    if (existe) {
+      res = await fetch(`http://localhost:3000/api/produtos/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(novoProduto)
+      });
+    } else {
+      res = await fetch('http://localhost:3000/api/produtos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(novoProduto)
+      });
+    }
+    const data = await res.json();
+    if (data.erro) {
+      alert(data.erro);
+    } else {
+      alert(data.mensagem);
+      limparFormulario();
+      await carregarProdutos();
+    }
+  }
+
+  async function excluirProduto() {
+    const id = parseInt(document.getElementById('produto-id').value);
+    if (!id) {
+      alert('Selecione um produto para excluir.');
+      return;
+    }
+    const confirmacao = confirm('Tem certeza que deseja excluir este produto?');
+    if (confirmacao) {
+      const res = await fetch(`http://localhost:3000/api/produtos/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.erro) {
+        alert(data.erro);
+      } else {
+        alert(data.mensagem);
+        limparFormulario();
+        await carregarProdutos();
+      }
+    }
+  }
+
+  function limparFormulario() {
+    produtoEditando = null;
+    document.getElementById('form-produto').reset();
+  }
+
+
+
+  window.addEventListener('DOMContentLoaded', carregarProdutos);
+</script>
+
+</body>
+</html>
