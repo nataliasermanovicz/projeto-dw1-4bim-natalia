@@ -173,18 +173,14 @@ INSERT INTO Pedido (dataDoPedido, ClientePessoaCpfPessoa, FuncionarioPessoaCpfPe
 ('2024-01-09', '88888888888', '99999999999'),
 ('2024-01-10', '10101010101', '11111111111');
 
--- PedidoHasProduto
 INSERT INTO PedidoHasProduto (ProdutoIdProduto, PedidoIdPedido, quantidade, precoUnitario) VALUES
 (1, 1, 2, 12.9),
 (2, 2, 1, 25.8),
 (3, 3, 5, 25.8),
 (4, 4, 3, 12.9),
 (5, 5, 2, 38.7),
-(6, 6, 4, 38.7),
-(7, 7, 1, 12.9),
-(8, 8, 2, 25.8),
-(9, 9, 6, 77.4),
-(10, 10, 2, 12.9);
+(6, 6, 4, 38.7);
+
 
 -- Pagamento
 INSERT INTO Pagamento (PedidoIdPedido, dataPagamento, valorTotalPagamento) VALUES
