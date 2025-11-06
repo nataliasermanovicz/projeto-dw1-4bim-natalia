@@ -1,14 +1,34 @@
 const db = require('../database.js');
 
+
+const path = require('path');
+
+exports.abrirTelaLogin = (req, res) => {
+  console.log('loginController - Rota /login - Acessando login.html');
+  res.sendFile(path.join(__dirname, '../../html/login/login.html'));
+};
+
 exports.verificaSeUsuarioEstaLogado = (req, res) => {
-  console.log('loginController - Acessando rota /verificaSeUsuarioEstaLogado');
-  let nome = req.cookies.usuarioLogado;
-  console.log('Cookie usuarioLogado:', nome);
-  nome = "Berola da silva"; /////////// isso é um teste, apagar depois
-  if (nome) {
-    res.json({ status: 'ok', nome });
+  //console.log('loginController -> verificaSeUsuarioEstaLogado - Verificando se usuário está logado via cookie');
+
+  const usuario = req.cookies.usuarioLogado; // O cookie deve conter o nome/ID do usuário
+
+  // Se o cookie 'usuario' existe (o valor é uma string/nome do usuário)
+  if (usuario) {
+    // Usuário está logado. Retorna 'ok' e os dados do usuário.
+    // É importante garantir que o valor do cookie 'usuarioLogado' seja o nome/ID do usuário.
+    res.json({
+      status: 'ok',
+      usuario: usuario // Retorna o valor do cookie, que é o nome/ID do usuário
+    });
   } else {
-    res.json({ status: 'nao_logado' });
+    // Cookie não existe. Usuário NÃO está logado.
+    // res.json({
+    //   status: 'nao_logado',
+    //   mensagem: 'Usuário não autenticado.'
+    // });
+
+    res.redirect('/login');
   }
 }
 
@@ -16,7 +36,7 @@ exports.verificaSeUsuarioEstaLogado = (req, res) => {
 // Funções do controller
 exports.listarPessoas = async (req, res) => {
   try {
-    const result = await db.query('SELECT * FROM pessoa ORDER BY id_pessoa');
+    const result = await db.query('SELECT * FROM pessoa ORDER BY cpfpessoa');
     res.json(result.rows);
   } catch (error) {
     console.error('Erro ao listar pessoas:', error);
@@ -27,15 +47,15 @@ exports.listarPessoas = async (req, res) => {
 exports.verificarEmail = async (req, res) => {
   const { email } = req.body;
 
-  const sql = 'SELECT nome_pessoa FROM pessoa WHERE email_pessoa = $1'; // Postgres usa $1, $2...
+  const sql = 'SELECT nomepessoa FROM pessoa WHERE emailpessoa = $1'; // Postgres usa $1, $2...
 
-  console.log('rota verificarEmail:', sql, email);
+  console.log('rota verificarEmail: ', sql, email);
 
   try {
     const result = await db.query(sql, [email]); // igual listarPessoas
 
     if (result.rows.length > 0) {
-      return res.json({ status: 'existe', nome: result.rows[0].nome_pessoa });
+      return res.json({ status: 'existe', nome: result.rows[0].nomepessoa });
     }
 
     res.json({ status: 'nao_encontrado' });
@@ -51,17 +71,23 @@ exports.verificarSenha = async (req, res) => {
   const { email, senha } = req.body;
 
   const sqlPessoa = `
-    SELECT id_pessoa, nome_pessoa 
-    FROM pessoa 
-    WHERE email_pessoa = $1 AND senha_pessoa = $2
+    SELECT cpfpessoa, nomepessoa 
+    FROM Pessoa 
+    WHERE emailpessoa = $1 AND senhapessoa = $2
   `;
-  const sqlProfessor = `
-    SELECT mnemonico_professor 
-    FROM professor 
-    WHERE pessoa_id_pessoa = $1
+  const sqlCliente = `
+    SELECT * 
+    FROM Cliente 
+    WHERE pessoacpfpessoa = $1
   `;
 
-  console.log('Rota verificarSenha:', sqlPessoa, email, senha);
+    const sqlFuncionario = `
+    SELECT * 
+    FROM Funcionario 
+    WHERE pessoacpfpessoa = $1
+  `;
+
+  //console.log('Rota verificarSenha:', sqlPessoa, email, senha);
 
   try {
     // 1. Verifica se existe pessoa com email/senha
@@ -71,25 +97,33 @@ exports.verificarSenha = async (req, res) => {
       return res.json({ status: 'senha_incorreta' });
     }
 
-    const { id_pessoa, nome_pessoa } = resultPessoa.rows[0];
+    const { cpfpessoa, nomepessoa } = resultPessoa.rows[0];
     console.log('Usuário encontrado:', resultPessoa.rows[0]);
 
-    // 2. Verifica se é professor
-    const resultProfessor = await db.query(sqlProfessor, [id_pessoa]);
+    // 2. Verifica se é cliente
+    const resultCliente = await db.query(sqlCliente, [cpfpessoa]);
 
-    const mnemonicoProfessor = resultProfessor.rows.length > 0
-      ? resultProfessor.rows[0].mnemonico_professor
-      : null;
-
-    if (mnemonicoProfessor) {
-      console.log('Usuário é professor, mnemonico:', mnemonicoProfessor);
+    let ehCliente = null;
+    if (resultCliente.rows.length === 0) {
+      ehCliente = "naoEhCliente";
     } else {
-      console.log('Usuário não é professor');
+      ehCliente = "ehCliente";
     }
 
-    // 3. Define cookie
+    // 2b. Verifica se é funcionário
+    const resultFuncionario = await db.query(sqlFuncionario, [cpfpessoa]);
 
-    res.cookie('usuarioLogado', nome_pessoa, {
+    let ehFuncionario = null;
+    if (resultFuncionario.rows.length === 0) {
+      ehFuncionario = "naoEhFuncionario";
+    } else {
+      ehFuncionario = "ehFuncionario";
+    }
+
+    console.log(`Tipo de usuário - Cliente: ${ehCliente}, Funcionário: ${ehFuncionario}`);
+
+    // 3. Define cookie
+    res.cookie('usuarioLogado', nomepessoa, {
       sameSite: 'None',
       secure: true,
       httpOnly: true,
@@ -99,11 +133,10 @@ exports.verificarSenha = async (req, res) => {
 
     console.log("Cookie 'usuarioLogado' definido com sucesso");
 
-    // 4. Retorna dados para o frontend (login.html)
+    // 4. Retorna dados para o html, o cookie será enviado ao html
     return res.json({
       status: 'ok',
-      nome: nome_pessoa,
-      mnemonicoProfessor,
+      nome: nomepessoa,
     });
 
   } catch (err) {
@@ -129,10 +162,10 @@ exports.logout = (req, res) => {
 exports.criarPessoa = async (req, res) => {
   //  console.log('Criando pessoa com dados:', req.body);
   try {
-    const { id_pessoa, nome_pessoa, email_pessoa, senha_pessoa, primeiro_acesso_pessoa = true, data_nascimento } = req.body;
+    const { cpfpessoa, nomepessoa, emailpessoa, senhapessoa, primeiro_acesso_pessoa = true, datanascimentopessoa } = req.body;
 
     // Validação básica
-    if (!nome_pessoa || !email_pessoa || !senha_pessoa) {
+    if (!nomepessoa || !emailpessoa || !senhapessoa) {
       return res.status(400).json({
         error: 'Nome, email e senha são obrigatórios'
       });
@@ -140,15 +173,15 @@ exports.criarPessoa = async (req, res) => {
 
     // Validação de email básica
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email_pessoa)) {
+    if (!emailRegex.test(emailpessoa)) {
       return res.status(400).json({
         error: 'Formato de email inválido'
       });
     }
 
     const result = await db.query(
-      'INSERT INTO pessoa (id_pessoa, nome_pessoa, email_pessoa, senha_pessoa, primeiro_acesso_pessoa, data_nascimento) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [id_pessoa, nome_pessoa, email_pessoa, senha_pessoa, primeiro_acesso_pessoa, data_nascimento]
+      'INSERT INTO pessoa (cpfpessoa, nomepessoa, emailpessoa, senhapessoa, primeiro_acesso_pessoa, datanascimentopessoa) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [cpfpessoa, nomepessoa, emailpessoa, senhapessoa, primeiro_acesso_pessoa, datanascimentopessoa]
     );
 
     res.status(201).json(result.rows[0]);
@@ -156,7 +189,7 @@ exports.criarPessoa = async (req, res) => {
     console.error('Erro ao criar pessoa:', error);
 
     // Verifica se é erro de email duplicado (constraint unique violation)
-    if (error.code === '23505' && error.constraint === 'pessoa_email_pessoa_key') {
+    if (error.code === '23505' && error.constraint === 'pessoa_emailpessoa_key') {
       return res.status(400).json({
         error: 'Email já está em uso'
       });
@@ -182,7 +215,7 @@ exports.obterPessoa = async (req, res) => {
     }
 
     const result = await db.query(
-      'SELECT * FROM pessoa WHERE id_pessoa = $1',
+      'SELECT * FROM pessoa WHERE cpfpessoa = $1',
       [id]
     );
 
@@ -208,7 +241,7 @@ exports.obterPessoaPorEmail = async (req, res) => {
     }
 
     const result = await db.query(
-      'SELECT * FROM pessoa WHERE email_pessoa = $1',
+      'SELECT * FROM pessoa WHERE emailpessoa = $1',
       [email]
     );
 
@@ -241,7 +274,7 @@ exports.atualizarSenha = async (req, res) => {
 
     // Verifica se a pessoa existe e a senha atual está correta
     const personResult = await db.query(
-      'SELECT * FROM pessoa WHERE id_pessoa = $1',
+      'SELECT * FROM pessoa WHERE cpfpessoa = $1',
       [id]
     );
 
@@ -252,13 +285,13 @@ exports.atualizarSenha = async (req, res) => {
     const person = personResult.rows[0];
 
     // Verificação básica da senha atual (em produção, use hash)
-    if (person.senha_pessoa !== senha_atual) {
+    if (person.senhapessoa !== senha_atual) {
       return res.status(400).json({ error: 'Senha atual incorreta' });
     }
 
     // Atualiza apenas a senha
     const updateResult = await db.query(
-      'UPDATE pessoa SET senha_pessoa = $1 WHERE id_pessoa = $2 RETURNING id_pessoa, nome_pessoa, email_pessoa, primeiro_acesso_pessoa, data_nascimento',
+      'UPDATE pessoa SET senhapessoa = $1 WHERE cpfpessoa = $2 RETURNING cpfpessoa, nomepessoa, emailpessoa, primeiro_acesso_pessoa, datanascimentopessoa',
       [nova_senha, id]
     );
 

@@ -10,6 +10,7 @@ exports.abrirCrudCargo = (req, res) => {
 }
 
 exports.listarCargos = async (req, res) => {
+  console.log("rota para listar cargos");
   try {
     const result = await query('SELECT * FROM cargo ORDER BY idCargo');
     // console.log('Resultado do SELECT:', result.rows);//verifica se está retornando algo

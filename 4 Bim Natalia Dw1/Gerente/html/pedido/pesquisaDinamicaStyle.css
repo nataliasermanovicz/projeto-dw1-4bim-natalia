@@ -1,0 +1,84 @@
+/* === Estilos para a busca dinâmica === */
+
+/* Contêiner principal da busca */
+.containerBuscaDinamica {
+    background: #fff;
+    padding: 10px 0;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 100%;
+    text-align: left;
+}
+
+/* Barra de busca */
+.search-bar-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    position: relative;
+    overflow: visible;
+}
+
+/* Select da busca */
+.search-select {
+    border: none;
+    padding: 10px 14px;
+    background-color: #eee;
+    font-size: 16px;
+    cursor: pointer;
+    border-right: 2px solid #ddd;
+    outline: none;
+    height: 100%;
+}
+
+/* Input ocupa TODO o espaço restante */
+#cliente_pessoa_cpf_pessoa {
+    flex: 1;
+    border: none;
+    padding: 10px;
+    font-size: 16px;
+    outline: none;
+    background: #fff;
+    min-width: 0;
+}
+
+/* Lista de resultados */
+.results-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background-color: #fff;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+    width: 100%;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 1000;
+    display: none;
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+/* Quando visível */
+.results-list.show {
+    display: block;
+}
+
+/* Itens da lista */
+.results-list li {
+    padding: 10px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.results-list li:hover {
+    background-color: #f7f7f7;
+}

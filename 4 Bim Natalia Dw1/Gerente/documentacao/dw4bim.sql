@@ -13,7 +13,7 @@ CREATE TABLE Endereco (
 
 CREATE TABLE Pessoa (
     cpfPessoa VARCHAR(20) PRIMARY KEY,
-    nomePessoa VARCHAR(60),
+    nomePessoa VARCHAR(60), 
     emailPessoa VARCHAR(60),
     senhaPessoa VARCHAR(32),
     dataNascimentoPessoa DATE,
@@ -43,7 +43,7 @@ CREATE TABLE Produto (
     imagemProduto VARCHAR(225),
     quantidadeEmEstoque INT,
     precoUnitario DOUBLE PRECISION
-);
+); 
 
 CREATE TABLE Pedido (
     idPedido SERIAL PRIMARY KEY,
@@ -58,7 +58,7 @@ CREATE TABLE PedidoHasProduto (
     quantidade INT,
     precoUnitario DOUBLE PRECISION,
     PRIMARY KEY (ProdutoIdProduto, PedidoIdPedido)
-);
+); 
 
 CREATE TABLE Pagamento (
     PedidoIdPedido INT PRIMARY KEY REFERENCES Pedido(idPedido),
@@ -157,11 +157,7 @@ INSERT INTO Produto (nomeProduto, imagemProduto, quantidadeEmEstoque, precoUnita
 ('Risqué Preto Sépia', 'imgs/pretosepia.webp', 150, 12.90),
 ('Risqué A.Mar', 'imgs/amar.jpg', 300, 16.90),
 ('Risqué Granulado Rosé', 'imgs/granuladorose.jpg', 250, 15.90),
-('Risqué Menta.liza', 'imgs/mentaliza.jpg', 120, 15.90),
-('Colorama Azul Sereno', 'imgs/azulsereno.jpg', 80, 11.50),
-('Colorama Rosa Chic', 'imgs/rosachic.jpg', 60, 11.50),
-('Big Universo Glitter', 'imgs/glitter.jpg', 40, 18.00),
-('Impala Nude Básico', 'imgs/nudebasico.jpg', 90, 13.00);
+('Risqué Menta.liza', 'imgs/mentaliza.jpg', 120, 15.90);
 
 -- Pedido
 -- (dataDoPedido, ClientePessoaCpfPessoa, FuncionarioPessoaCpfPessoa)
@@ -177,18 +173,14 @@ INSERT INTO Pedido (dataDoPedido, ClientePessoaCpfPessoa, FuncionarioPessoaCpfPe
 ('2024-01-09', '88888888888', '99999999999'),
 ('2024-01-10', '10101010101', '11111111111');
 
--- PedidoHasProduto
 INSERT INTO PedidoHasProduto (ProdutoIdProduto, PedidoIdPedido, quantidade, precoUnitario) VALUES
 (1, 1, 2, 12.9),
 (2, 2, 1, 25.8),
 (3, 3, 5, 25.8),
 (4, 4, 3, 12.9),
 (5, 5, 2, 38.7),
-(6, 6, 4, 38.7),
-(7, 7, 1, 12.9),
-(8, 8, 2, 25.8),
-(9, 9, 6, 77.4),
-(10, 10, 2, 12.9);
+(6, 6, 4, 38.7);
+
 
 -- Pagamento
 INSERT INTO Pagamento (PedidoIdPedido, dataPagamento, valorTotalPagamento) VALUES

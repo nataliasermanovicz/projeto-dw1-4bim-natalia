@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Carrinho</title>
-  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
   <style>
 #pagina-carrinho {
@@ -87,9 +87,9 @@
 </head>
 <body onload="mostrarCarrinho()">
 
-  <header class="top-bar" id="header-carrinho-gerente">
+  <header class="top-bar" id="header-carrinho">
     <div class="top-right-buttons">
-      <button onclick="window.location.href='menu_gerente.html'">Página inicial</button>
+      <button onclick="window.location.href='menu.html'">Página inicial</button>
     </div>
   </header>
 
@@ -116,7 +116,10 @@
       </div>
     </section>
 
-    <section id="pagamento-pix" style="display: none;"></section>
+    <section id="pagamento-pix" style="display: none;">
+      <!-- Frase removida: <h4>Pagamento via PIX</h4> -->
+      <!-- Botão 'Finalizar Compra' será movido para baixo do QR Code -->
+    </section>
 
     <section id="qrcode-area" class="qrcode-area" style="display: none; text-align: center;">
       <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
@@ -245,11 +248,11 @@ function concluirCompra() {
   document.getElementById('pagina-carrinho').style.display = 'none';
   document.getElementById('mensagem-final').style.display = 'block';
   // Esconde header/topo
-  var header = document.getElementById('header-carrinho-gerente');
+  var header = document.getElementById('header-carrinho');
   if (header) header.style.display = 'none';
   // Redireciona para o menu após 2 segundos
   setTimeout(function() {
-    window.location.href = 'menu_gerente.html';
+    window.location.href = 'menu.html';
   }, 2000);
 }
 

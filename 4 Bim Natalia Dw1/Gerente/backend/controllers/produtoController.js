@@ -146,3 +146,17 @@ exports.deletarProduto = async (req, res) => {
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 }
+
+
+exports.buscarImagem = (req, res) => {
+  const nome = req.params.nome;
+  const caminhoImagem = path.join(__dirname, '../../imgs', nome);
+
+  res.sendFile(caminhoImagem, (err) => {
+    if (err) {
+      console.error('Erro ao enviar imagem:', err);
+      res.status(404).json({ error: 'Imagem não encontrada' });
+    }
+  });
+};
+

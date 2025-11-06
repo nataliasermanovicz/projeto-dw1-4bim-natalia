@@ -9,5 +9,6 @@ router.post('/', produtoController.criarProduto);
 router.get('/:id', produtoController.obterProduto);
 // não tem atualizar produto
 router.delete('/:id', produtoController.deletarProduto);
-router.get('/img/:nome', produtoController.buscarImagem);
+//router.get('/img/:nome', produtoController.buscarImagem);
 module.exports = router;
+ 

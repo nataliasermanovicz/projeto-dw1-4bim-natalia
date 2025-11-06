@@ -167,7 +167,7 @@
             // Define o caminho da imagem: /imagens/produto/ + idproduto + .png
             // Certifique-se de que o diretório /imagens/produto/ exista na mesma raiz do seu index.html
             // e que as imagens (1.png, 2.png, etc.) estejam lá.
-            const caminhoImagem = `../imgs/${produto.idproduto}.png`;
+            const caminhoImagem = `./../imgs/produto/${produto.idproduto}.png`;
 
             // Formatação do preço
             const precoFormatado = produto.precounitario.toLocaleString('pt-BR', {

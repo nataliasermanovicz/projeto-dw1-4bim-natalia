@@ -71,10 +71,12 @@ const FormaDePagamentoRoutes = require('./routes/FormaDePagamentoRoutes');
 app.use('/FormaDePagamento', FormaDePagamentoRoutes);
 const PagamentoHasFormaPagamentoRoutes = require('./routes/PagamentoHasFormaPagamentoRoutes');
 app.use('/PagamentoHasFormaPagamento', PagamentoHasFormaPagamentoRoutes);
+const loginRoutes = require('./routes/loginRoutes');
+app.use('/login', loginRoutes);
 
 app.get('/', (req, res) => {
   res.json({
-    message: 'O server está funcionando - essa é a rota raiz!',
+    message: 'O server está funcionando - essa é a rota raiz! -------',
     database: 'PostgreSQL',
     timestamp: new Date().toISOString()
   });
@@ -129,7 +131,7 @@ app.use((req, res) => {
 const startServer = async () => {
   try {
     console.log(caminhoFrontend);
-    console.log('Testando conexão com PostgreSQL...');
+    console.log('Testando conexão com PostgreSQL');
     const connectionTest = await db.testConnection();
     if (!connectionTest) {
       console.error('❌ Falha na conexão com PostgreSQL');
