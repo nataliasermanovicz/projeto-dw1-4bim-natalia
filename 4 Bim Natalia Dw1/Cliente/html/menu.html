@@ -33,12 +33,12 @@ async function carregarProdutos() {
   produtos.forEach(prod => {
     const article = document.createElement('article');
     article.className = 'produto';
-   // alert('caminho da imagem '+prod.imagemproduto)
-    let oSrc = `/home/alunos/a2667401/Área de trabalho/4 Bim Natalia Dw1/Cliente/${prod.imagemproduto}`;
-    // alert(oSrc);
+
+    // Caminho relativo ao servidor
+    let oSrc = `../${prod.imagemproduto}`;
 
     article.innerHTML = `
-      <img src=${oSrc} alt="${prod.nomeproduto}">
+      <img src="${oSrc}" alt="${prod.nomeproduto}">
       <p>${prod.nomeproduto}</p>
       <button onclick="window.location.href='produto.html?id=${prod.idproduto}'">Ver mais</button>
     `;

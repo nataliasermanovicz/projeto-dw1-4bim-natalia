@@ -33,42 +33,59 @@
   </section>
 
   <script>
-let produtoSelecionado = null;
-async function carregarProdutoBackend() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const id = parseInt(urlParams.get('id'));
-  if (!isNaN(id)) {
-    const res = await fetch('http://localhost:3001/produto');
-    const produtos = await res.json();
-    produtoSelecionado = produtos.find(p => p.id === id);
-    if (produtoSelecionado) {
-      document.getElementById('nomeproduto').textContent = produtoSelecionado.nomeproduto;
-      document.getElementById('precounitario').textContent = produtoSelecionado.precounitario;
-      document.getElementById('imagemproduto').src = produtoSelecionado.imagemproduto;
-    } else {
-      alert('Produto não encontrado.'); 
+    let produtoSelecionado = null;
+    
+    async function carregarProdutoBackend() {
+      // Captura o parâmetro 'id' da URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const idProduto = parseInt(urlParams.get('id')); // Corrigido para capturar 'id'
+    
+      if (!isNaN(idProduto)) {
+        try {
+          // Faz a requisição para buscar os produtos
+          const res = await fetch('http://localhost:3001/produto');
+          const produtos = await res.json();
+    
+          // Localiza o produto pelo 'id'
+          produtoSelecionado = produtos.find(prod => prod.idproduto === idProduto);
+    
+          if (produtoSelecionado) {
+            // Atualiza os elementos HTML com os dados do produto
+            document.getElementById('nomeProduto').textContent = produtoSelecionado.nomeproduto;
+            document.getElementById('imagemProduto').src = `../${produtoSelecionado.imagemproduto}`;
+          } else {
+            alert('Produto não encontrado.');
+          }
+        } catch (error) {
+          console.error('Erro ao carregar o produto:', error);
+          alert('Erro ao carregar o produto.');
+        }
+      } else {
+        alert('ID do produto inválido.');
+      }
     }
-  }
-}
-window.addEventListener('DOMContentLoaded', carregarProdutoBackend);
-
-function adicionarCarrinho() {
-  const quantidadeEmEstoque = parseInt(document.getElementById('quantidadeEmEstoque').value);
-  if (!quantidadeEmEstoque || quantidadeEmEstoque <= 0) {
-    alert('Por favor, selecione uma quantidade válida.');
-    return;
-  }
-  let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
-  const itemExistente = carrinho.find(item => item.id === produtoSelecionado.id);
-  if (itemExistente) {
-    itemExistente.quantidadeEmEstoque += quantidadeEmEstoque;
-  } else {
-    carrinho.push({ ...produtoSelecionado, quantidadeEmEstoque });
-  }
-  localStorage.setItem('carrinho', JSON.stringify(carrinho));
-  alert('Produto adicionado ao carrinho!');
-}
-</script>
-
+    
+    window.addEventListener('DOMContentLoaded', carregarProdutoBackend);
+    
+    function adicionarCarrinho() {
+      const quantidadeEmEstoque = parseInt(document.getElementById('quantidadeEmEstoque').value);
+      if (!quantidadeEmEstoque || quantidadeEmEstoque <= 0) {
+        alert('Por favor, selecione uma quantidade válida.');
+        return;
+      }
+    
+      let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+      const itemExistente = carrinho.find(item => item.idproduto === produtoSelecionado.idproduto);
+    
+      if (itemExistente) {
+        itemExistente.quantidadeEmEstoque += quantidadeEmEstoque;
+      } else {
+        carrinho.push({ ...produtoSelecionado, quantidadeEmEstoque });
+      }
+    
+      localStorage.setItem('carrinho', JSON.stringify(carrinho));
+      alert('Produto adicionado ao carrinho!');
+    }
+    </script>
 </body>
 </html>

@@ -38,12 +38,12 @@ function realizarLogin() {
 
 
 const produtos = [
-    { id: 1, nome: 'Risqué Felicidade', descricao: 'Esmalte Vermelho "Felicidade" 8 ml - R$ 12.90', imagem: '../imgs/felicidade.jpg', preco: 12.90 },
-    { id: 2, nome: 'Risqué Condessa', descricao: 'Esmalte Rosa "Condessa" 8 ml - R$ 12.90', imagem: '../imgs/condessa.jpg', preco: 12.90 },
-    { id: 3, nome: 'Risqué Preto Sépia', descricao: 'Esmalte Preto "Preto Sépia" 8 ml - R$ 12.90', imagem: '../imgs/pretosepia.webp', preco: 12.90 },
-    { id: 4, nome: 'Risqué A.Mar', descricao: 'Esmalte Azul "A.Mar" 8 ml - R$ 16.90', imagem: '../imgs/amar.jpg', preco: 16.90 },
-    { id: 5, nome: 'Risqué Granulado Rosé', descricao: 'Esmalte Rosa "Granulado Rosé" 8 ml - R$ 15.90', imagem: '../imgs/granuladorose.jpg', preco: 15.90 },
-    { id: 6, nome: 'Risqué Menta.liza', descricao: 'Esmalte Verde "Menta.liza" 8 ml - R$ 15.90', imagem: '../imgs/mentaliza.jpg', preco: 15.90 }
+    { id: 1, nome: 'Risqué Felicidade', descricao: 'Esmalte Vermelho "Felicidade" 8 ml - R$ 12.90', imagem: '../imgs/3.png', preco: 12.90 },
+    { id: 2, nome: 'Risqué Condessa', descricao: 'Esmalte Rosa "Condessa" 8 ml - R$ 12.90', imagem: '../imgs/2.png', preco: 12.90 },
+    { id: 3, nome: 'Risqué Preto Sépia', descricao: 'Esmalte Preto "Preto Sépia" 8 ml - R$ 12.90', imagem: '../imgs/6.png', preco: 12.90 },
+    { id: 4, nome: 'Risqué A.Mar', descricao: 'Esmalte Azul "A.Mar" 8 ml - R$ 16.90', imagem: '../imgs/1.png', preco: 16.90 },
+    { id: 5, nome: 'Risqué Granulado Rosé', descricao: 'Esmalte Rosa "Granulado Rosé" 8 ml - R$ 15.90', imagem: '../imgs/4.png', preco: 15.90 },
+    { id: 6, nome: 'Risqué Menta.liza', descricao: 'Esmalte Verde "Menta.liza" 8 ml - R$ 15.90', imagem: '../imgs/5.png', preco: 15.90 }
 ];
 
 let produtoSelecionado = null;
