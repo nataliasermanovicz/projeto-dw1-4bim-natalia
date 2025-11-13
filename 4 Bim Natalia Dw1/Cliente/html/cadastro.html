@@ -27,7 +27,7 @@
       <input type="date" id="novaDataNascimento" required>
 
       <label for="novoEmail">Email:</label>
-      <input type="email" id="novoEmail" placeholder="seu@email.com" pattern="^[a-zA-Z0-9._%+-]+@email\.com$" required>
+      <input type="email" id="novoEmail" placeholder="seu@email.com" required>
 
       <label for="novaSenha">Senha:</label>
       <input type="password" id="novaSenha" placeholder="Crie uma senha" required>
@@ -36,11 +36,12 @@
     </form>
   </div>
 
-<script src="../script.js"></script>
+<script src="script.js"></script>
 <script>
 document.getElementById('cadastroForm').onsubmit = function(e) {
   e.preventDefault();
-  fazerCadastro();
+  // Chama a função global corrigida
+  fazerCadastro(); 
 };
 </script>
 

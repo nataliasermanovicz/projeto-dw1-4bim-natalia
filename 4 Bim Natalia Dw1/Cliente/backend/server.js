@@ -1,4 +1,3 @@
-
 const express = require('express');
 const app = express();
 const cookieParser = require('cookie-parser');
@@ -71,6 +70,10 @@ const FormaDePagamentoRoutes = require('./routes/FormaDePagamentoRoutes');
 app.use('/FormaDePagamento', FormaDePagamentoRoutes);
 const PagamentoHasFormaPagamentoRoutes = require('./routes/PagamentoHasFormaPagamentoRoutes');
 app.use('/PagamentoHasFormaPagamento', PagamentoHasFormaPagamentoRoutes);
+
+// Rotas de Login e Autenticação
+const loginRoutes = require('./routes/loginRoutes');
+app.use('/auth', loginRoutes); 
 
 app.get('/', (req, res) => {
   res.json({
