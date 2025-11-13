@@ -1,3 +1,5 @@
+const HOST_BACKEND = 'http://localhost:3001'; // **CORREÇÃO: Usar a porta 3001 do servidor.js**
+
 function realizarLogin() {
   const email = document.getElementById('email').value;
   const senha = document.getElementById('senha').value;
@@ -13,7 +15,8 @@ function realizarLogin() {
     return;
   }
 
-  fetch('http://localhost:3000/api/login', {
+  // **CORREÇÃO DE URL:**
+  fetch(`${HOST_BACKEND}/api/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, senha })
@@ -26,6 +29,9 @@ function realizarLogin() {
         localStorage.setItem('usuarioLogado', 'true');
         localStorage.setItem('perfilUsuario', data.usuario.perfil);
         localStorage.setItem('usuarioEmail', data.usuario.email);
+        // **NOVO:** Salvar o ID da Pessoa Cliente (assumindo que o login o retorna)
+        localStorage.setItem('clienteIdPessoa', data.usuario.idpessoa);
+        
         if (data.usuario.perfil === 'gerente') {
           window.location.href = '../html gerente/menu_gerente.html';
         } else {
@@ -37,21 +43,23 @@ function realizarLogin() {
 }
 
 
+// **CORREÇÃO: Padronizar chaves dos produtos com o DB (idProduto, nomeProduto, precoUnitario)**
 const produtos = [
-    { id: 1, nome: 'Risqué Felicidade', descricao: 'Esmalte Vermelho "Felicidade" 8 ml - R$ 12.90', imagem: '../imgs/3.png', preco: 12.90 },
-    { id: 2, nome: 'Risqué Condessa', descricao: 'Esmalte Rosa "Condessa" 8 ml - R$ 12.90', imagem: '../imgs/2.png', preco: 12.90 },
-    { id: 3, nome: 'Risqué Preto Sépia', descricao: 'Esmalte Preto "Preto Sépia" 8 ml - R$ 12.90', imagem: '../imgs/6.png', preco: 12.90 },
-    { id: 4, nome: 'Risqué A.Mar', descricao: 'Esmalte Azul "A.Mar" 8 ml - R$ 16.90', imagem: '../imgs/1.png', preco: 16.90 },
-    { id: 5, nome: 'Risqué Granulado Rosé', descricao: 'Esmalte Rosa "Granulado Rosé" 8 ml - R$ 15.90', imagem: '../imgs/4.png', preco: 15.90 },
-    { id: 6, nome: 'Risqué Menta.liza', descricao: 'Esmalte Verde "Menta.liza" 8 ml - R$ 15.90', imagem: '../imgs/5.png', preco: 15.90 }
+    { idProduto: 1, nomeProduto: 'Risqué Felicidade', descricao: 'Esmalte Vermelho "Felicidade" 8 ml - R$ 12.90', imagem: '../imgs/3.png', precoUnitario: 12.90 },
+    { idProduto: 2, nomeProduto: 'Risqué Condessa', descricao: 'Esmalte Rosa "Condessa" 8 ml - R$ 12.90', imagem: '../imgs/2.png', precoUnitario: 12.90 },
+    { idProduto: 3, nomeProduto: 'Risqué Preto Sépia', descricao: 'Esmalte Preto "Preto Sépia" 8 ml - R$ 12.90', imagem: '../imgs/6.png', precoUnitario: 12.90 },
+    { idProduto: 4, nomeProduto: 'Risqué A.Mar', descricao: 'Esmalte Azul "A.Mar" 8 ml - R$ 16.90', imagem: '../imgs/1.png', precoUnitario: 16.90 },
+    { idProduto: 5, nomeProduto: 'Risqué Granulado Rosé', descricao: 'Esmalte Rosa "Granulado Rosé" 8 ml - R$ 15.90', imagem: '../imgs/4.png', precoUnitario: 15.90 },
+    { idProduto: 6, nomeProduto: 'Risqué Menta.liza', descricao: 'Esmalte Verde "Menta.liza" 8 ml - R$ 15.90', imagem: '../imgs/5.png', precoUnitario: 15.90 }
 ];
 
 let produtoSelecionado = null;
 let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
 
 function verProduto(id) {
-    produtoSelecionado = produtos.find(p => p.id === id);
-    document.getElementById('nome-produto').textContent = produtoSelecionado.nome;
+    // **CORREÇÃO: Buscar por idProduto**
+    produtoSelecionado = produtos.find(p => p.idProduto === id);
+    document.getElementById('nome-produto').textContent = produtoSelecionado.nomeProduto; // **CORREÇÃO**
     document.getElementById('descricao-produto').textContent = produtoSelecionado.descricao;
     document.getElementById('imagem-produto').src = produtoSelecionado.imagem;
     document.getElementById('home').style.display = 'none';
@@ -65,11 +73,19 @@ function adicionarCarrinho() {
         return;
     }
 
-    const itemExistente = carrinho.find(item => item.id === produtoSelecionado.id);
+    // **CORREÇÃO: Usar idProduto**
+    const itemExistente = carrinho.find(item => item.idProduto === produtoSelecionado.idProduto);
+
     if (itemExistente) {
         itemExistente.quantidade += quantidade;
     } else {
-        carrinho.push({ ...produtoSelecionado, quantidade });
+        // **CORREÇÃO: Salvar com chaves padronizadas (idProduto, nomeProduto, precoUnitario)**
+        carrinho.push({ 
+            idProduto: produtoSelecionado.idProduto, 
+            nomeProduto: produtoSelecionado.nomeProduto,
+            precoUnitario: produtoSelecionado.precoUnitario,
+            quantidade: quantidade 
+        });
     }
     localStorage.setItem('carrinho', JSON.stringify(carrinho));
     alert('Produto adicionado ao carrinho!');
@@ -83,9 +99,10 @@ function mostrarCarrinho() {
 
     carrinho.forEach(item => {
         const li = document.createElement('li');
-        li.textContent = `${item.nome} - Quantidade: ${item.quantidade} - Preço: R$ ${item.preco.toFixed(2)}`;
+        // **CORREÇÃO: Usar as chaves padronizadas**
+        li.textContent = `${item.nomeProduto} - Quantidade: ${item.quantidade} - Preço: R$ ${item.precoUnitario.toFixed(2)}`;
         lista.appendChild(li);
-        total += item.quantidade * item.preco;
+        total += item.quantidade * item.precoUnitario;
     });
 
     totalSpan.textContent = total.toFixed(2);
@@ -138,11 +155,74 @@ function finalizarCompraPix() {
     concluirCompra();
 }
 
-function concluirCompra() {
+// **CORREÇÃO: Implementação para salvar no banco de dados**
+async function concluirCompra() {
+    const clienteId = localStorage.getItem('clienteIdPessoa'); // ID da Pessoa logada (cliente)
+    const valorTotal = window.valorFinalCalculado; 
+    let carrinhoSalvo = JSON.parse(localStorage.getItem('carrinho')) || [];
+    
+    if (carrinhoSalvo.length === 0 || !clienteId || !valorTotal) {
+        alert("Erro: Carrinho vazio, usuário não logado ou valor total inválido.");
+        return;
+    }
+
+    // Mapeia o carrinho para o formato ItemPedido (assumindo que o backend
+    // cuidará da inserção na tabela ItemPedido)
+    const itensPedido = carrinhoSalvo.map(item => ({
+        idProduto: item.idProduto, 
+        quantidade: item.quantidade,
+        precoUnitario: item.precoUnitario
+    }));
+
+    const dadosPedido = {
+        // Campos que o pedidoController.js espera receber no body:
+        // O PedidoController espera que o ID do Pedido seja enviado (o que é incorreto
+        // se idPedido for SERIAL, mas enviamos NULL e o backend deve ignorar)
+        idPedido: null, // Deixe o backend gerar se for SERIAL
+        dataDoPedido: new Date().toISOString().slice(0, 10), // Data atual no formato AAAA-MM-DD
+        ClientePessoaIdPessoa: clienteId,
+        FuncionarioPessoaIdPessoa: null, // Assumindo que o cliente não é funcionário
+        
+        // Dados adicionais que o backend precisa processar:
+        itensPedido: itensPedido, // Este campo deve ser lido e processado pelo backend
+        valorTotal: valorTotal
+    };
+
+    try {
+        // **CORREÇÃO DE URL:**
+        const resposta = await fetch(`${HOST_BACKEND}/pedido`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dadosPedido)
+        });
+
+        const resultado = await resposta.json();
+
+        if (resposta.ok) {
+            console.log("Pedido salvo com sucesso:", resultado);
+            // Continua para a finalização da UI
+        } else {
+            alert(`A compra foi concluída, mas houve um erro ao salvar o pedido: ${resultado.error || 'Erro desconhecido.'}`);
+            console.error("Erro ao salvar pedido:", resultado);
+            // Se o erro foi do servidor, não bloqueamos o usuário, mas avisamos.
+        }
+    } catch (error) {
+        console.error("Erro de rede/servidor ao finalizar a compra:", error);
+        alert("Aviso: Houve um erro de conexão ao tentar salvar o pedido. Tente novamente.");
+        return; 
+    }
+    
+    // Lógica de finalização da UI
     carrinho = [];
     localStorage.removeItem('carrinho');
+    localStorage.removeItem('valorFinalCalculado');
+
     document.getElementById('pagina-carrinho').style.display = 'none';
     document.getElementById('mensagem-final').style.display = 'block';
+
+    setTimeout(() => {
+        window.location.href = 'menu.html';
+    }, 2000);
 }
 
 // Detecta se está na página de produto e carrega o produto da URL
@@ -167,6 +247,8 @@ if (window.location.pathname.includes('carrinho.html')) {
         mostrarCarrinho();
     });
 
+    // Esta função mostrarCarrinho está duplicada e precisa usar a versão global corrigida, 
+    // mas se for exclusiva para carrinho.html, garantimos a correção aqui também.
     function mostrarCarrinho() {
         const lista = document.getElementById('lista-carrinho');
         const totalSpan = document.getElementById('total');
@@ -175,9 +257,10 @@ if (window.location.pathname.includes('carrinho.html')) {
 
         carrinho.forEach(item => {
             const li = document.createElement('li');
-            li.textContent = `${item.nome} - Quantidade: ${item.quantidade} - Preço: R$ ${item.preco.toFixed(2)}`;
+            // **CORREÇÃO: Usar as chaves padronizadas**
+            li.textContent = `${item.nomeProduto} - Quantidade: ${item.quantidade} - Preço: R$ ${item.precoUnitario.toFixed(2)}`;
             lista.appendChild(li);
-            total += item.quantidade * item.preco;
+            total += item.quantidade * item.precoUnitario;
         });
 
         totalSpan.textContent = total.toFixed(2);
@@ -311,6 +394,7 @@ window.addEventListener('DOMContentLoaded', () => {
 function logout() {
     localStorage.removeItem('usuarioLogado');
     localStorage.removeItem('perfilUsuario');
+    localStorage.removeItem('clienteIdPessoa'); // **NOVO: Limpar ID da Pessoa**
     window.location.href = 'login.html';
 }
 
@@ -343,7 +427,8 @@ function fazerCadastro() {
     }
 
     // Envia para o backend
-    fetch('http://localhost:3000/api/cadastro', {
+    // **CORREÇÃO DE URL:**
+    fetch(`${HOST_BACKEND}/api/cadastro`, { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, senha, nome, dataNascimento })
