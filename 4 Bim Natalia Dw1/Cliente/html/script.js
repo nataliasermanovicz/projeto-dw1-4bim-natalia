@@ -14,7 +14,7 @@ function gerarCpfFicticio() {
 }
 
 // =======================================================
-// === FUNÇÃO DE LOGIN (POST /auth/verificarSenha) ===
+// === FUNÇÃO DE LOGIN (POST /verificarSenha) ===
 // =======================================================
 async function realizarLogin() {
   const email = document.getElementById('email').value.trim();
@@ -27,13 +27,16 @@ async function realizarLogin() {
   }
 
   const dadosLogin = {
-    email: email,
-    senha: senha
+    emailpessoa: email,
+    senhapessoa: senha
   };
 
   try {
     // **CORREÇÃO DE URL:** Chamando a rota correta do loginController.js
-    const response = await fetch(`${HOST_BACKEND}/auth/verificarSenha`, {
+    let sql = `${HOST_BACKEND}/login/verificarSenha`;
+    alert(`Enviando dados para: ${sql}`); // Debug temporário
+
+    const response = await fetch(sql, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

@@ -69,7 +69,7 @@ exports.verificarEmail = async (req, res) => {
 // Verificar senha
 exports.verificarSenha = async (req, res) => {
   const { email, senha } = req.body;
-
+ //console.log('loginController - Rota /verificarSenha - Verificando senha do usuário - backend', email, senha);
   const sqlPessoa = `
     SELECT cpfpessoa, nomepessoa 
     FROM Pessoa 

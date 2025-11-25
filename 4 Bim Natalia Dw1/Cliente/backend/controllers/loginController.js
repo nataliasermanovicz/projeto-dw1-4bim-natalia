@@ -68,7 +68,12 @@ exports.verificarEmail = async (req, res) => {
 
 // Verificar senha
 exports.verificarSenha = async (req, res) => {
-  const { email, senha } = req.body;
+  console.log("--------------------------------------------------------------------");
+  console.log(req.body);
+
+
+  console.log('loginController - Rota /verificarSenha - Verificando senha do usuário');
+  const { emailpessoa, senhapessoa } = req.body;
 
   const sqlPessoa = `
     SELECT cpfpessoa, nomepessoa 
@@ -91,7 +96,7 @@ exports.verificarSenha = async (req, res) => {
 
   try {
     // 1. Verifica se existe pessoa com email/senha
-    const resultPessoa = await db.query(sqlPessoa, [email, senha]);
+    const resultPessoa = await db.query(sqlPessoa, [emailpessoa, senhapessoa]);
 
     if (resultPessoa.rows.length === 0) {
       return res.json({ status: 'senha_incorreta' });

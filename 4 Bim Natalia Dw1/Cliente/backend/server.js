@@ -73,7 +73,7 @@ app.use('/PagamentoHasFormaPagamento', PagamentoHasFormaPagamentoRoutes);
 
 // Rotas de Login e Autenticação
 const loginRoutes = require('./routes/loginRoutes');
-app.use('/auth', loginRoutes); 
+app.use('/login', loginRoutes); 
 
 app.get('/', (req, res) => {
   res.json({
