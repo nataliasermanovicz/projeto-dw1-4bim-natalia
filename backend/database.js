@@ -6,7 +6,7 @@ const dbConfig = {
   port: 5432,
   user: 'radames',
   password: 'Lageado001.',
-  database: 'natalia-4bim',
+  database: 'natalia-dw4bim',
   ssl: false,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
