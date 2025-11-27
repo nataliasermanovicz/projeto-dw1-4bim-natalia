@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Carrinho</title>
+  <link rel="stylesheet" href="carrinho.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+</head>
+<body onload="mostrarCarrinho()">
+
+  <header class="top-bar" id="header-carrinho">
+    <div class="top-right-buttons">
+      <button onclick="window.location.href='menu.html'">Página inicial</button>
+    </div>
+  </header>
+
+  <section id="pagina-carrinho" style="display: none;">
+    <h2>🛒 Carrinho de Compras</h2>
+    <ul id="lista-carrinho"></ul>
+    <h3>Total: R$ <span id="total"></span></h3>
+    <div class="botoes-carrinho-centro">
+      <button id="btn-finalizar-compra" onclick="mostrarFormaPagamento()">Finalizar Compra</button>
+    </div>
+
+    <section id="forma-pagamento" style="display: none;">
+      <h4>Escolha a forma de pagamento:</h4>
+      <div class="botoes-pagamento-coluna" style="margin-bottom: 18px;">
+        <button onclick="pagarComCartao()">💳 Pagar com Cartão</button>
+        <button onclick="pagarPIX()" style="margin-bottom: 12px;">✨ Pagar com PIX</button>
+      </div>
+    </section>
+
+    <section id="pagamento-cartao" style="display: none; text-align: center;">
+      <h4 style="text-align: center; font-size: 1.15rem; color: #444; margin-bottom: 16px;">Pagamento com Cartão</h4>
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <input type="text" id="numero-cartao" placeholder="Número do cartão" maxlength="19" oninput="formatarCartao(this)" style="width: 90%; max-width: 320px; padding: 12px; font-size: 17px; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 18px; text-align: center; background: #f8f8f8; color: #333; box-shadow: 0 2px 8px rgba(0,0,0,0.04); outline: none; transition: border 0.2s;" inputmode="numeric" pattern="[0-9 ]*" />
+        <button onclick="finalizarCompraCartao()" class="btn-pagamento-finalizar">Finalizar Compra</button>
+      </div>
+    </section>
+
+    <section id="pagamento-pix" style="display: none;"></section>
+
+    <section id="qrcode-area" class="qrcode-area" style="display: none; text-align: center;">
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <span style="font-size: 1.1rem; color: #444; margin-bottom: 12px;">Escaneie o QR Code para pagar com PIX</span>
+        <div id="qrcode" style="margin-bottom: 18px;"></div>
+        <button onclick="finalizarCompraPix()" class="btn-pagamento-finalizar">Finalizar Compra</button>
+      </div>
+    </section>
+  </section>
+
+  <section id="mensagem-final" style="display: none; text-align: center;">
+    <h2 style="margin-top: 60px; font-size: 2rem; color: #8B1E3F; font-weight: 600;">✅ Compra finalizada com sucesso!</h2>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+  <script src="carrinho.js"></script>
+  
+</body>
+</html>

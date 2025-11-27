@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Produto</title>
+  <link rel="stylesheet" href="produto.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="top-bar">
+  <div class="top-right-buttons">
+    <button onclick="window.location.href='carrinho.html'">Ver carrinho 🛒</button>
+    <button onclick="window.location.href='menu.html'">Página inicial</button>
+  </div>
+</header>
+
+  <section id="home" style="display: none;"></section>
+
+  <section id="pagina-produto">
+    <h2 id="nomeProduto">Carregando Produto...</h2>
+    <img id="imagemProduto" src="" alt="Imagem do Produto" style="width: 300px; height: 200px; object-fit: contain;" />
+    <div class="quantidadeEmEstoque-row">
+      <label for="quantidadeEmEstoque">Escolha a quantidade:</label>
+      <input type="number" id="quantidadeEmEstoque" min="1" value="1" />
+    </div>
+    <div class="botoes-produto">
+      <button onclick="adicionarCarrinho()">Adicionar ao carrinho</button>
+    </div>
+  </section>
+
+  <script src="produto.js"></script> 
+</body>
+</html>

@@ -1,39 +1,135 @@
 const db = require('../database.js');
-
-
 const path = require('path');
+
+// =======================================================
+// === FUNÇÕES DE ACESSO E AUTENTICAÇÃO (FRONTEND) ===
+// =======================================================
 
 exports.abrirTelaLogin = (req, res) => {
   console.log('loginController - Rota /login - Acessando login.html');
-  res.sendFile(path.join(__dirname, '../../frontend/login.html'));
+  // Ajuste o path se necessário, mas o seu caminho atual é: /frontend/login/login.html
+  res.sendFile(path.join(__dirname, '../../frontend/login/login.html'));
 };
 
 exports.verificaSeUsuarioEstaLogado = (req, res) => {
-  //console.log('loginController -> verificaSeUsuarioEstaLogado - Verificando se usuário está logado via cookie');
+  // console.log('loginController -> verificaSeUsuarioEstaLogado - Verificando se usuário está logado via cookie');
 
   const usuario = req.cookies.usuarioLogado; // O cookie deve conter o nome/ID do usuário
 
-  // Se o cookie 'usuario' existe (o valor é uma string/nome do usuário)
   if (usuario) {
     // Usuário está logado. Retorna 'ok' e os dados do usuário.
-    // É importante garantir que o valor do cookie 'usuarioLogado' seja o nome/ID do usuário.
     res.json({
       status: 'ok',
-      usuario: usuario // Retorna o valor do cookie, que é o nome/ID do usuário
+      usuario: usuario 
     });
   } else {
     // Cookie não existe. Usuário NÃO está logado.
-    // res.json({
-    //   status: 'nao_logado',
-    //   mensagem: 'Usuário não autenticado.'
-    // });
-
     res.redirect('/login');
   }
 }
 
+// Logout
+exports.logout = (req, res) => {
+  res.clearCookie('usuarioLogado', {
+    sameSite: 'None',
+    secure: true,
+    httpOnly: true,
+    path: '/',
+  });
+  console.log("Cookie 'usuarioLogado' removido com sucesso");
+  res.json({ status: 'deslogado' });
+}
 
-// Funções do controller
+
+// =======================================================
+// === FUNÇÃO MODIFICADA: exports.verificarSenha ===
+// =======================================================
+exports.verificarSenha = async (req, res) => {
+  const { email, senha } = req.body;
+  
+  const sqlPessoa = `
+    SELECT cpfpessoa, nomepessoa 
+    FROM Pessoa 
+    WHERE emailpessoa = $1 AND senhapessoa = $2
+  `;
+  const sqlCliente = `
+    SELECT * FROM Cliente 
+    WHERE pessoacpfpessoa = $1
+  `;
+
+  const sqlFuncionario = `
+    SELECT * FROM Funcionario 
+    WHERE pessoacpfpessoa = $1
+  `;
+
+  try {
+    // 1. Verifica se existe pessoa com email/senha
+    const resultPessoa = await db.query(sqlPessoa, [email, senha]);
+
+    if (resultPessoa.rows.length === 0) {
+      return res.json({ status: 'senha_incorreta' });
+    }
+
+    const { cpfpessoa, nomepessoa } = resultPessoa.rows[0];
+    
+    // 2. Define o Perfil e verifica se é cliente/funcionário
+    let perfil = 'cliente'; // Padrão
+    
+    // 2a. Verifica se é cliente
+    const resultCliente = await db.query(sqlCliente, [cpfpessoa]);
+    const ehCliente = resultCliente.rows.length > 0;
+
+    // 2b. Verifica se é funcionário
+    const resultFuncionario = await db.query(sqlFuncionario, [cpfpessoa]);
+    const ehFuncionario = resultFuncionario.rows.length > 0;
+    
+    // Define o perfil final
+    if (ehFuncionario) {
+        perfil = 'funcionario';
+        // Se a regra é que funcionários também podem ser clientes:
+        if (ehCliente) {
+             perfil = 'cliente_funcionario'; 
+        }
+    } else if (ehCliente) {
+        perfil = 'cliente';
+    } else {
+        // Se a pessoa existe, mas não é nem cliente nem funcionário (raro, mas possível)
+        perfil = 'indefinido';
+    }
+
+    console.log(`Usuário encontrado: ${nomepessoa}, CPF: ${cpfpessoa}, Perfil: ${perfil}`);
+
+    // 3. Define cookie (armazena o NOME)
+    res.cookie('usuarioLogado', nomepessoa, {
+      sameSite: 'None',
+      secure: true,
+      httpOnly: true,
+      path: '/',
+      maxAge: 24 * 60 * 60 * 1000, // 1 dia
+    });
+
+    console.log("Cookie 'usuarioLogado' definido com sucesso");
+
+    // 4. Retorna dados para o frontend (com as novas chaves idpessoa e perfil)
+    return res.json({
+      status: 'ok',
+      nome: nomepessoa,
+      // 💡 ALTERAÇÃO 1: Retorna o ID da pessoa (CPF), necessário para a compra no frontend
+      idpessoa: cpfpessoa, 
+      // 💡 ALTERAÇÃO 2: Retorna o perfil para decisões de navegação/permissão no frontend
+      perfil: perfil, 
+    });
+
+  } catch (err) {
+    console.error('Erro ao verificar senha:', err);
+    return res.status(500).json({ status: 'erro', mensagem: err.message });
+  }
+}
+
+// =======================================================
+// === FUNÇÕES DE CRUD (MANTIDAS) ===
+// =======================================================
+
 exports.listarPessoas = async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM pessoa ORDER BY cpfpessoa');
@@ -64,100 +160,6 @@ exports.verificarEmail = async (req, res) => {
     res.status(500).json({ status: 'erro', mensagem: err.message });
   }
 };
-
-
-// Verificar senha
-exports.verificarSenha = async (req, res) => {
-  const { email, senha } = req.body;
- //console.log('loginController - Rota /verificarSenha - Verificando senha do usuário - backend', email, senha);
-  const sqlPessoa = `
-    SELECT cpfpessoa, nomepessoa 
-    FROM Pessoa 
-    WHERE emailpessoa = $1 AND senhapessoa = $2
-  `;
-  const sqlCliente = `
-    SELECT * 
-    FROM Cliente 
-    WHERE pessoacpfpessoa = $1
-  `;
-
-    const sqlFuncionario = `
-    SELECT * 
-    FROM Funcionario 
-    WHERE pessoacpfpessoa = $1
-  `;
-
-  //console.log('Rota verificarSenha:', sqlPessoa, email, senha);
-
-  try {
-    // 1. Verifica se existe pessoa com email/senha
-    const resultPessoa = await db.query(sqlPessoa, [email, senha]);
-
-    if (resultPessoa.rows.length === 0) {
-      return res.json({ status: 'senha_incorreta' });
-    }
-
-    const { cpfpessoa, nomepessoa } = resultPessoa.rows[0];
-    console.log('Usuário encontrado:', resultPessoa.rows[0]);
-
-    // 2. Verifica se é cliente
-    const resultCliente = await db.query(sqlCliente, [cpfpessoa]);
-
-    let ehCliente = null;
-    if (resultCliente.rows.length === 0) {
-      ehCliente = "naoEhCliente";
-    } else {
-      ehCliente = "ehCliente";
-    }
-
-    // 2b. Verifica se é funcionário
-    const resultFuncionario = await db.query(sqlFuncionario, [cpfpessoa]);
-
-    let ehFuncionario = null;
-    if (resultFuncionario.rows.length === 0) {
-      ehFuncionario = "naoEhFuncionario";
-    } else {
-      ehFuncionario = "ehFuncionario";
-    }
-
-    console.log(`Tipo de usuário - Cliente: ${ehCliente}, Funcionário: ${ehFuncionario}`);
-
-    // 3. Define cookie
-    res.cookie('usuarioLogado', nomepessoa, {
-      sameSite: 'None',
-      secure: true,
-      httpOnly: true,
-      path: '/',
-      maxAge: 24 * 60 * 60 * 1000, // 1 dia
-    });
-
-    console.log("Cookie 'usuarioLogado' definido com sucesso");
-
-    // 4. Retorna dados para o html, o cookie será enviado ao html
-    return res.json({
-      status: 'ok',
-      nome: nomepessoa,
-    });
-
-  } catch (err) {
-    console.error('Erro ao verificar senha:', err);
-    return res.status(500).json({ status: 'erro', mensagem: err.message });
-  }
-}
-
-
-// Logout
-exports.logout = (req, res) => {
-  res.clearCookie('usuarioLogado', {
-    sameSite: 'None',
-    secure: true,
-    httpOnly: true,
-    path: '/',
-  });
-  console.log("Cookie 'usuarioLogado' removido com sucesso");
-  res.json({ status: 'deslogado' });
-}
-
 
 exports.criarPessoa = async (req, res) => {
   //  console.log('Criando pessoa com dados:', req.body);
@@ -301,4 +303,3 @@ exports.atualizarSenha = async (req, res) => {
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 };
-

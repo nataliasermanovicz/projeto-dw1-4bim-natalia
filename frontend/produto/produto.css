@@ -1,0 +1,197 @@
+/* ======================================================= */
+/* 0. GERAL E FONTES */
+/* ======================================================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #eeefe8; /* Off-white */
+    color: #333;
+    line-height: 1.6;
+    padding: 0 20px;
+  }
+  
+  h1, h2, h3, h4 {
+    font-weight: 500;
+  }
+  
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+  
+  /* Regra geral de botão */
+  button {
+    background-color: #8B1E3F; /* Vermelho Bordô */
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background-color 0.3s ease;
+  }
+  
+  button:hover {
+    background-color: #7a1634; /* Bordô mais escuro */
+  }
+  
+  /* ======================================================= */
+  /* 1. CABEÇALHO (top-bar) */
+  /* ======================================================= */
+  .top-bar {
+    background-color: #fff;
+    display: flex;
+    justify-content: flex-end; /* Alinha o header com a página de produto */
+    align-items: center;
+    padding: 15px 30px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  /* Container para os botões no canto direito */
+  .top-right-buttons {
+    display: flex;
+    gap: 10px; /* Espaço entre os botões */
+  }
+  
+  .top-right-buttons button {
+    background-color: #8B1E3F; /* Vermelho Bordô */
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .top-right-buttons button:hover {
+    background-color: #7a1634; /* Bordô mais escuro */
+  }
+  
+  /* ======================================================= */
+  /* 2. PÁGINA DE PRODUTO */
+  /* ======================================================= */
+  #pagina-produto {
+    max-width: 520px;
+    margin: 40px auto;
+    background-color: #fff;
+    padding: 36px 32px 32px 32px;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 70vh;
+    position: relative;
+  }
+  
+  #pagina-produto h2 {
+      margin-bottom: 20px;
+      font-size: 28px;
+      text-align: center;
+  }
+  
+  #pagina-produto img {
+    /* Mantém o estilo básico, mas permite que o inline style da imagem seja aplicado */
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+  
+  /* Corrigindo a classe 'quantidadeEmEstoque-row' no HTML (era 'quantidade-row' no CSS original) */
+  .quantidadeEmEstoque-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    margin-bottom: 18px;
+    justify-content: center;
+  }
+  
+  /* Estilo para o label */
+  #pagina-produto label[for="quantidadeEmEstoque"] {
+    margin-bottom: 0;
+    font-size: 16px;
+    color: #444;
+    align-self: center;
+    min-width: 120px;
+    text-align: right;
+  }
+  
+  /* Estilo para o input number */
+  #pagina-produto input[type="number"] {
+    width: 90px;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    margin-bottom: 0;
+    margin-right: 0;
+    text-align: center;
+  }
+  
+  .botoes-produto {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    margin-top: 10px;
+  }
+  
+  #pagina-produto .botoes-produto button {
+    /* Estilo específico para o botão de adicionar ao carrinho */
+    width: 100%;
+    min-height: 48px;
+    background-color: #8B1E3F;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 17px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+    margin-bottom: 0;
+    margin-top: 0;
+    display: block;
+  }
+  
+  #pagina-produto .botoes-produto button:hover {
+    background-color: #7a1634;
+  }
+  
+  /* ======================================================= */
+  /* 3. MEDIA QUERIES (Responsividade) */
+  /* ======================================================= */
+  @media (max-width: 600px) {
+    #pagina-produto {
+      max-width: 98vw;
+      padding: 10vw 2vw;
+      min-height: 80vh;
+    }
+    #pagina-produto img {
+      max-width: 90vw;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .top-bar {
+      flex-direction: column;
+      text-align: center;
+      padding: 15px;
+    }
+  
+    .top-right-buttons {
+      margin-top: 10px;
+      justify-content: center;
+    }
+  
+    #pagina-produto {
+      padding: 20px;
+    }
+  }
