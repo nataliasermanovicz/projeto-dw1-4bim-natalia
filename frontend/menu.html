@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nail Polish</title>
+  <link rel="stylesheet" href="../style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="top-bar">
+  <h1>Bem-vindo (a)!</h1>
+  <div class="top-right-buttons" id="user-area">
+    <button onclick="window.location.href='carrinho.html'">Ver Carrinho 🛒</button>
+    <button id="loginButton" onclick="window.location.href='login.html'">Login</button>
+  </div>
+</header>
+
+<main id="home">
+  <section class="produtos" id="produtos-lista">
+    <!-- Produtos serão carregados via JS -->
+  </section>
+</main>
+<!-- /home/alunos/a2667401/Área de trabalho/4 Bim Natalia Dw1/Cliente/imgs/amar.jpg -->
+<!-- Cliente/imgs/amar.jpg -->
+<script>
+async function carregarProdutos() {
+  const res = await fetch('http://localhost:3001/produto');
+  const produtos = await res.json();
+  const lista = document.getElementById('produtos-lista');
+  lista.innerHTML = '';
+  produtos.forEach(prod => {
+    const article = document.createElement('article');
+    article.className = 'produto';
+
+    // Caminho relativo ao servidor
+    let oSrc = `../${prod.imagemproduto}`;
+
+    article.innerHTML = `
+      <img src="${oSrc}" alt="${prod.nomeproduto}">
+      <p>${prod.nomeproduto}</p>
+      <button onclick="window.location.href='produto.html?id=${prod.idproduto}'">Ver mais</button>
+    `;
+    lista.appendChild(article);
+  });
+}
+window.addEventListener('DOMContentLoaded', () => {
+  carregarProdutos();
+  // Controle de login/logout
+  const usuarioLogado = localStorage.getItem('usuarioLogado');
+  const userArea = document.getElementById('user-area');
+  const loginButton = document.getElementById('loginButton');
+  if (usuarioLogado === 'true') {
+    if (loginButton) loginButton.remove();
+    const perfilIcon = document.createElement('div');
+    perfilIcon.className = 'perfil-icon';
+    perfilIcon.textContent = '👤';
+    perfilIcon.title = 'Perfil';
+    perfilIcon.style.position = 'relative';
+    perfilIcon.style.cursor = 'pointer';
+    const menuPerfil = document.createElement('div');
+    menuPerfil.style.display = 'none';
+    menuPerfil.style.position = 'absolute';
+    menuPerfil.style.top = '45px';
+    menuPerfil.style.right = '0';
+    menuPerfil.style.backgroundColor = '#fff';
+    menuPerfil.style.border = '1px solid #ccc';
+    menuPerfil.style.borderRadius = '6px';
+    menuPerfil.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+    menuPerfil.style.zIndex = '1000';
+    menuPerfil.innerHTML = `<button style="background:none; border:none; color:#8B1E3F; padding:10px; cursor:pointer; width:100%;" onclick="logout()">Sair</button>`;
+    perfilIcon.appendChild(menuPerfil);
+    perfilIcon.onclick = function () {
+      menuPerfil.style.display = menuPerfil.style.display === 'none' ? 'block' : 'none';
+    };
+    document.addEventListener('click', function (e) {
+      if (!perfilIcon.contains(e.target)) menuPerfil.style.display = 'none';
+    });
+    if (userArea) userArea.appendChild(perfilIcon);
+  }
+});
+function logout() {
+  localStorage.removeItem('usuarioLogado');
+  localStorage.removeItem('perfilUsuario');
+  localStorage.removeItem('usuarioEmail');
+  window.location.href = 'login.html';
+}
+</script>
+
+</body>
+</html>
