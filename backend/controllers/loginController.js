@@ -5,7 +5,7 @@ const path = require('path');
 
 exports.abrirTelaLogin = (req, res) => {
   console.log('loginController - Rota /login - Acessando login.html');
-  res.sendFile(path.join(__dirname, '../../html/login/login.html'));
+  res.sendFile(path.join(__dirname, '../../frontend/login.html'));
 };
 
 exports.verificaSeUsuarioEstaLogado = (req, res) => {
