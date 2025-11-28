@@ -12,3 +12,4 @@ router.delete('/:id', produtoController.deletarProduto);
 //router.get('/img/:nome', produtoController.buscarImagem);
 module.exports = router;
  
+router.get('/', produtoController.abrirProduto);

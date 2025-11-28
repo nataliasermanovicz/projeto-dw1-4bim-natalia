@@ -30,9 +30,10 @@ exports.verificaSeUsuarioEstaLogado = (req, res) => {
 
 // Logout
 exports.logout = (req, res) => {
+  const secureFlag = process.env.NODE_ENV === 'production';
   res.clearCookie('usuarioLogado', {
     sameSite: 'None',
-    secure: true,
+    secure: secureFlag,
     httpOnly: true,
     path: '/',
   });
@@ -100,9 +101,11 @@ exports.verificarSenha = async (req, res) => {
     console.log(`Usuário encontrado: ${nomepessoa}, CPF: ${cpfpessoa}, Perfil: ${perfil}`);
 
     // 3. Define cookie (armazena o NOME)
+    // Define secure apenas em produção (em desenvolvimento localhost sem HTTPS, secure:true impede o cookie)
+    const secureFlag = process.env.NODE_ENV === 'production';
     res.cookie('usuarioLogado', nomepessoa, {
       sameSite: 'None',
-      secure: true,
+      secure: secureFlag,
       httpOnly: true,
       path: '/',
       maxAge: 24 * 60 * 60 * 1000, // 1 dia

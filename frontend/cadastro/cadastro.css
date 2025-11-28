@@ -1,0 +1,147 @@
+/* Geral */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #eeefe8; /* Off-white */
+  color: #333;
+  line-height: 1.6;
+  padding: 0 20px;
+}
+
+h1, h2, h3, h4 {
+  font-weight: 500;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Cabeçalho */
+.top-bar {
+  background-color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.top-bar h1 {
+  font-size: 24px;
+  color: #444;
+}
+
+/* Container para os botões no canto direito */
+.top-right-buttons {
+  display: flex;
+  gap: 10px; /* Espaço entre os botões */
+}
+
+.top-right-buttons button {
+  background-color: #8B1E3F; /* Vermelho Bordô */
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+.top-right-buttons button:hover {
+  background-color: #7a1634; /* Bordô mais escuro */
+}
+
+/* Estilo para botões gerais que não estão em outros contextos específicos (usado implicitamente em alguns outros elementos não presentes na HTML de Cadastro) */
+button {
+  background-color: #8B1E3F; /* Vermelho Bordô */
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 18px;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #7a1634; /* Bordô mais escuro */
+}
+
+/* Página de Cadastro */
+.cadastro-container {
+  max-width: 400px;
+  margin: 60px auto;
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.cadastro-container h2 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.cadastro-container label {
+  display: block;
+  text-align: left;
+  margin-bottom: 5px;
+  color: #555;
+  font-size: 16px;
+}
+
+.cadastro-container input,
+.cadastro-container select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
+
+.cadastro-container button {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  background-color: #8B1E3F;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  transition: background-color 0.3s ease;
+}
+
+.cadastro-container button:hover {
+  background-color: #7a1634;
+}
+
+/* Estilo Responsivo */
+@media (max-width: 768px) {
+  .top-bar {
+    flex-direction: column;
+    text-align: center;
+    padding: 15px;
+  }
+
+  .top-right-buttons {
+    margin-top: 10px;
+    justify-content: center;
+  }
+}
+
+/* AVISO: O bloco a seguir foi incluído pois estava no CSS fornecido, mas é redundante ou não se aplica diretamente à página de Cadastro, exceto pelas regras gerais de media query que já foram consideradas. Mantido para fidelidade ao código original: */
+@media (max-width: 600px) {
+  /* Regras para #pagina-produto que não são relevantes para cadastro.html */
+}

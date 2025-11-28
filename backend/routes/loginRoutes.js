@@ -13,6 +13,8 @@ router.get('/abrirTelaLogin', loginController.abrirTelaLogin); // Mantida para o
 router.post('/verificarEmail', loginController.verificarEmail);
 router.post('/verificarSenha', loginController.verificarSenha);
 router.post('/verificaSeUsuarioEstaLogado', loginController.verificaSeUsuarioEstaLogado);
+// Logout (limpa cookie no backend)
+router.post('/logout', loginController.logout);
 
 // Rotas de CRUD (listar, criar, obter...) - Ajuste a rota base para evitar conflito
 router.get('/lista', loginController.listarPessoas); // Alterado de '/' para '/lista'

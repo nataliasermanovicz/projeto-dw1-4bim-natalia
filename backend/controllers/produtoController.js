@@ -9,6 +9,11 @@ exports.abrirCrudProduto = (req, res) => {
   res.sendFile(path.join(__dirname, '../../html/produto/produto.html'));
 } 
 
+exports.abrirProduto = (req, res) => {
+    console.log('produtoController - Rota /produto - Acessando produto.html');
+    res.sendFile(path.join(__dirname, '../../frontend/produto/produto.html'));
+};
+
 exports.listarProdutos = async (req, res) => {
   try {
     const result = await query('SELECT * FROM produto ORDER BY idProduto');

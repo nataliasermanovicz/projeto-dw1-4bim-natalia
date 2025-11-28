@@ -23,7 +23,7 @@ async function carregarProdutos() {
       article.innerHTML = `
         <img src="${oSrc}" alt="${prod.nomeproduto}">
         <p>${prod.nomeproduto}</p>
-        <button onclick="window.location.href='/produto.html?id=${prod.idproduto}'">Ver mais</button>
+        <button onclick="window.location.href='http://localhost:3001/produto?id=${prod.idproduto}'">Ver mais</button>
       `;
       lista.appendChild(article);
     });
@@ -45,8 +45,8 @@ function logout() {
   localStorage.removeItem('usuarioEmail');
   localStorage.removeItem('clienteIdPessoa'); // Limpar ID do cliente
   
-  // Redireciona
-  window.location.href = 'login.html';
+  // Redireciona para a rota do servidor que serve a tela de login
+  window.location.href = `${HOST_BACKEND}/login`;
 }
 
 /**

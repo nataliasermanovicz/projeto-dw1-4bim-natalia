@@ -26,10 +26,10 @@ async function realizarLogin() {
     return;
   }
 
-  const dadosLogin = {
-    emailpessoa: email,
-    senhapessoa: senha
-  };
+    const dadosLogin = {
+        email: email,
+        senha: senha
+    };
 
   try {
     // **CORREÇÃO DE URL:** Chamando a rota correta do loginController.js
@@ -49,7 +49,8 @@ async function realizarLogin() {
     const result = await response.json();
 
     if (response.ok && result.status === 'ok') {
-      alert(`Login realizado com sucesso! Bem-vindo(a), ${result.nome}.`);
+    // alert de sucesso removido para UX mais limpa
+    console.log(`Login realizado com sucesso! Bem-vindo(a), ${result.nome}.`);
       
       // Armazena no localStorage o nome do usuário e talvez o ID,
       // mas o estado de login é gerenciado pelo cookie do backend.
@@ -58,8 +59,8 @@ async function realizarLogin() {
       localStorage.setItem('usuarioLogado', 'true');
       //localStorage.setItem('perfilUsuario', result.perfil || 'cliente'); // Perfil não é retornado pelo backend
       
-      // Redireciona para o menu principal após o sucesso
-      window.location.href = 'menu.html';
+    // Redireciona para a rota do servidor que serve o menu
+    window.location.href = `${HOST_BACKEND}/menu`;
       
     } else if (result.status === 'senha_incorreta') {
       alert('Email ou senha incorretos. Tente novamente.');
@@ -493,7 +494,7 @@ window.addEventListener('DOMContentLoaded', () => {
 // **CORREÇÃO: Implementação do logout para limpar cookie no backend**
 async function logout() {
     try {
-        const response = await fetch(`${HOST_BACKEND}/auth/logout`, {
+        const response = await fetch(`${HOST_BACKEND}/login/logout`, {
             method: 'POST',
             credentials: 'include' // Essencial para enviar o cookie
         });
@@ -514,8 +515,8 @@ async function logout() {
     localStorage.removeItem('carrinho'); 
     localStorage.removeItem('valorFinalCalculado');
 
-    // Redireciona para a tela de login
-    window.location.href = 'login.html';
+    // Redireciona para a rota do servidor que serve o menu
+    window.location.href = `${HOST_BACKEND}/menu`;
 }
 
 // Expõe funções globais que são usadas no HTML
