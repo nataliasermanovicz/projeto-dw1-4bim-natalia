@@ -8,6 +8,8 @@ const pedidoController = require('../controllers/pedidoController');
 router.get('/', pedidoController.listarPedido);
 router.post('/', pedidoController.criarPedido);
 router.get('/:id', pedidoController.obterPedido);
+// listar pedidos por cliente (CPF)
+router.get('/cliente/:cpf', pedidoController.listarPedidosPorCliente);
 // não tem atualizar pedido
 router.delete('/:id', pedidoController.deletarPedido);
 

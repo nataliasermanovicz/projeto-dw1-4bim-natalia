@@ -10,7 +10,7 @@ exports.abrirCrudPedidos = (req, res) => {
 // Listar pedidos
 exports.listarPedido = async (req, res) => {
   try {
-    const result = await query('SELECT * FROM pedidos ORDER BY idPedido');
+    const result = await query('SELECT * FROM pedido ORDER BY idpedido');
     res.json(result.rows);
   } catch (error) {
     console.error('Erro ao listar pedidos:', error);
@@ -21,18 +21,22 @@ exports.listarPedido = async (req, res) => {
 // Criar pedido
 exports.criarPedido = async (req, res) => {
   try {
-    const { idPedido, dataDoPedido, ClientePessoaIdPessoa, FuncionarioPessoaIdPessoa } = req.body;
+    // Log para ajudar a debugar os pedidos que chegam
+    console.log('PedidoController.criarPedido - corpo recebido:', req.body);
+
+    const { dataDoPedido, ClientePessoaCpfPessoa, FuncionarioPessoaCpfPessoa } = req.body;
 
     // Validação básica
-    if (!idPedido || !ClientePessoaIdPessoa) {
-      return res.status(400).json({ error: 'ID e cliente são obrigatórios' });
+    if (!ClientePessoaCpfPessoa) {
+      return res.status(400).json({ error: 'Cliente é obrigatório' });
     }
 
     const result = await query(
-      'INSERT INTO pedidos (idPedido, dataDoPedido, ClientePessoaIdPessoa, FuncionarioPessoaIdPessoa) VALUES ($1, $2, $3, $4) RETURNING *',
-      [idPedido, dataDoPedido, ClientePessoaIdPessoa, FuncionarioPessoaIdPessoa]
+      'INSERT INTO pedido (dataDoPedido, ClientePessoaCpfPessoa, FuncionarioPessoaCpfPessoa) VALUES ($1, $2, $3) RETURNING *',
+      [dataDoPedido, ClientePessoaCpfPessoa, FuncionarioPessoaCpfPessoa]
     );
 
+    console.log('Pedido criado:', result.rows[0]);
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('Erro ao criar pedido:', error);
@@ -55,7 +59,7 @@ exports.obterPedido = async (req, res) => {
     }
 
     const result = await query(
-      'SELECT * FROM pedidos WHERE idPedido = $1',
+      'SELECT * FROM pedido WHERE idpedido = $1',
       [id]
     );
 
@@ -70,14 +74,28 @@ exports.obterPedido = async (req, res) => {
   }
 };
 
+// Listar pedidos por CPF de cliente
+exports.listarPedidosPorCliente = async (req, res) => {
+  try {
+    const cpf = req.params.cpf;
+    if (!cpf) return res.status(400).json({ error: 'CPF é obrigatório' });
+
+    const result = await query('SELECT * FROM pedido WHERE clientepessoacpfpessoa = $1 ORDER BY idpedido', [cpf]);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Erro ao listar pedidos por cliente:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+};
+
 // Atualizar pedido
 exports.atualizarPedido = async (req, res) => {
   try {
     const id = req.params.id;
-    const { dataDoPedido, ClientePessoaIdPessoa, FuncionarioPessoaIdPessoa } = req.body;
+    const { dataDoPedido, ClientePessoaCpfPessoa, FuncionarioPessoaCpfPessoa } = req.body;
 
     const existingResult = await query(
-      'SELECT * FROM pedidos WHERE idPedido = $1',
+      'SELECT * FROM pedido WHERE idpedido = $1',
       [id]
     );
 
@@ -86,8 +104,8 @@ exports.atualizarPedido = async (req, res) => {
     }
 
     const updateResult = await query(
-      'UPDATE pedidos SET dataDoPedido = $1, ClientePessoaIdPessoa = $2, FuncionarioPessoaIdPessoa = $3 WHERE idPedido = $4 RETURNING *',
-      [dataDoPedido, ClientePessoaIdPessoa, FuncionarioPessoaIdPessoa, id]
+      'UPDATE pedido SET datadopedido = $1, clientepessoacpfpessoa = $2, funcionariopessoacpfpessoa = $3 WHERE idpedido = $4 RETURNING *',
+      [dataDoPedido, ClientePessoaCpfPessoa, FuncionarioPessoaCpfPessoa, id]
     );
 
     res.json(updateResult.rows[0]);
@@ -103,7 +121,7 @@ exports.deletarPedido = async (req, res) => {
     const id = req.params.id;
 
     const existingResult = await query(
-      'SELECT * FROM pedidos WHERE idPedido = $1',
+      'SELECT * FROM pedido WHERE idpedido = $1',
       [id]
     );
 
@@ -111,7 +129,7 @@ exports.deletarPedido = async (req, res) => {
       return res.status(404).json({ error: 'Pedido não encontrado' });
     }
 
-    await query('DELETE FROM pedidos WHERE idPedido = $1', [id]);
+    await query('DELETE FROM pedido WHERE idpedido = $1', [id]);
 
     res.status(204).send();
   } catch (error) {

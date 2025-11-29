@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Meus Pedidos</title>
+  <link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<header class="top-bar"> 
+  <h1>Meus Pedidos</h1>
+  <div class="top-right-buttons" id="user-area">
+          <button onclick="window.location.href='http://localhost:3001/menu'">Página inicial</button>
+    <button onclick="window.location.href='../carrinho/carrinho.html'">Ver Carrinho 🛒</button>
+    <button id="loginButton" onclick="window.location.href='/login'">Login</button>
+  </div>
+</header>
+
+<main style="max-width: 1000px; margin: 40px auto;">
+  <section id="pedidos-lista">
+    <p>Carregando pedidos...</p>
+  </section>
+</main>
+
+<script src="registroPedidos.js"></script>
+</body>
+</html>

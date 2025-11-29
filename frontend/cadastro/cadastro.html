@@ -20,6 +20,9 @@
   <div class="cadastro-container">
     <h2>Cadastro de Novo Usuário</h2>
     <form id="cadastroForm">
+      <label for="novoCpf">CPF:</label>
+      <input type="text" id="novoCpf" placeholder="000.000.000-00" required maxlength="14" inputmode="numeric" pattern="\d{3}\.\d{3}\.\d{3}-\d{2}" title="Formato: 000.000.000-00">
+
       <label for="novoNome">Nome:</label>
       <input type="text" id="novoNome" placeholder="Seu nome completo" required>
 

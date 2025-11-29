@@ -56,11 +56,19 @@ async function realizarLogin() {
       // mas o estado de login é gerenciado pelo cookie do backend.
       // O backend não retorna o perfil, mantendo a navegação para menu.html
       // (ajuste o perfil/redirecionamento se o backend for atualizado).
-      localStorage.setItem('usuarioLogado', 'true');
-      //localStorage.setItem('perfilUsuario', result.perfil || 'cliente'); // Perfil não é retornado pelo backend
-      
-    // Redireciona para a rota do servidor que serve o menu
-    window.location.href = `${HOST_BACKEND}/menu`;
+            // Marca como logado e salva o ID da pessoa retornado pelo backend
+            localStorage.setItem('usuarioLogado', 'true');
+            if (result.idpessoa) {
+                // Salva o ID/CPF da pessoa para uso em pedidos e carrinho
+                localStorage.setItem('clienteIdPessoa', String(result.idpessoa));
+            }
+            // Salva também o perfil, se fornecido
+            if (result.perfil) {
+                localStorage.setItem('perfilUsuario', result.perfil);
+            }
+
+        // Redireciona para a rota do servidor que serve o menu
+        window.location.href = `${HOST_BACKEND}/menu`;
       
     } else if (result.status === 'senha_incorreta') {
       alert('Email ou senha incorretos. Tente novamente.');
@@ -280,7 +288,7 @@ async function concluirCompra() {
     const dadosPedido = {
         // Campos que o pedidoController.js espera receber no body:
         dataDoPedido: new Date().toISOString().slice(0, 10), // Data atual no formato AAAA-MM-DD
-        ClientePessoaIdPessoa: idDoCliente,
+        ClientePessoaCpfPessoa: idDoCliente,
         FuncionarioPessoaIdPessoa: null, 
         
         // Dados adicionais que o backend precisa processar:

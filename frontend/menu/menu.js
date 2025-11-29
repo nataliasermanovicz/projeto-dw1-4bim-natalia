@@ -61,6 +61,22 @@ function gerenciarEstadoLogin() {
     // 1. Remove o botão de Login
     if (loginButton) loginButton.remove();
 
+    // 2. Cria o botão 'Pedidos' que redireciona para a página de registros de pedidos
+    const pedidosButton = document.createElement('button');
+    pedidosButton.id = 'pedidosButton';
+    pedidosButton.textContent = 'Pedidos';
+    pedidosButton.style.backgroundColor = '#8B1E3F';
+    pedidosButton.style.color = '#fff';
+    pedidosButton.style.border = 'none';
+    pedidosButton.style.padding = '12px 20px';
+    pedidosButton.style.borderRadius = '6px';
+    pedidosButton.style.cursor = 'pointer';
+    pedidosButton.onclick = function () {
+      window.location.href = '../carrinho/registroPedidos.html';
+    };
+    // Insere o botão antes do ícone de perfil (será adicionado abaixo)
+    userArea.appendChild(pedidosButton);
+
     // 2. Cria o ícone de Perfil (👤)
     const perfilIcon = document.createElement('div');
     perfilIcon.className = 'perfil-icon';
