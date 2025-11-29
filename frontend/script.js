@@ -494,7 +494,7 @@ window.addEventListener('DOMContentLoaded', () => {
 // **CORREÇÃO: Implementação do logout para limpar cookie no backend**
 async function logout() {
     try {
-        const response = await fetch(`${HOST_BACKEND}/login/logout`, {
+        const response = await fetch(`${HOST_BACKEND}/auth/logout`, {
             method: 'POST',
             credentials: 'include' // Essencial para enviar o cookie
         });
@@ -515,8 +515,8 @@ async function logout() {
     localStorage.removeItem('carrinho'); 
     localStorage.removeItem('valorFinalCalculado');
 
-    // Redireciona para a rota do servidor que serve o menu
-    window.location.href = `${HOST_BACKEND}/menu`;
+    // Redireciona para a tela de login
+    window.location.href = 'login.html';
 }
 
 // Expõe funções globais que são usadas no HTML

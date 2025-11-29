@@ -30,10 +30,9 @@ exports.verificaSeUsuarioEstaLogado = (req, res) => {
 
 // Logout
 exports.logout = (req, res) => {
-  const secureFlag = process.env.NODE_ENV === 'production';
   res.clearCookie('usuarioLogado', {
     sameSite: 'None',
-    secure: secureFlag,
+    secure: true,
     httpOnly: true,
     path: '/',
   });

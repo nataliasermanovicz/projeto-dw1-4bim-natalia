@@ -211,10 +211,10 @@ function concluirCompra() {
   var header = document.getElementById('header-carrinho');
   if (header) header.style.display = 'none';
   
-  // Redireciona para o menu após 2 segundos
+  // Redireciona para o menu após 1 segundos
   setTimeout(function() {
-    window.location.href = 'menu.html';
-  }, 2000);
+    window.location.href = 'http://localhost:3001/menu';
+  }, 1000);
 }
 
 // Inicialização da página (oculta as formas de pagamento)
