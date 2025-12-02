@@ -2,80 +2,151 @@ const HOST_BACKEND = 'http://localhost:3001';
 
 async function carregarPedidosUsuario() {
   const listaEl = document.getElementById('pedidos-lista');
-  listaEl.innerHTML = '<p>Carregando pedidos...</p>';
 
   // Verifica se usuário está logado e tem id salvo
   const clienteId = localStorage.getItem('clienteIdPessoa');
   if (!clienteId) {
-    listaEl.innerHTML = '<p>Você precisa estar logado para ver seus pedidos. <a href="/login">Faça login</a>.</p>';
+    listaEl.innerHTML = '<p class="loading-msg">Você precisa estar logado para ver seus pedidos. <a href="/login">Faça login</a>.</p>';
     return;
   }
 
   try {
-    // Pega apenas os pedidos do cliente via rota específica
-    console.log('clienteId (localStorage):', clienteId);
-    const resPedidos = await fetch(`${HOST_BACKEND}/pedido/cliente/${clienteId}`);
+    console.log('Buscando dados completos...');
+
+    // Busca paralela de todas as tabelas necessárias
+    const [resPedidos, resPagamentos, resRelacaoPg, resFormasPg, resItensPedido, resProdutos] = await Promise.all([
+        fetch(`${HOST_BACKEND}/pedido/cliente/${clienteId}`),
+        fetch(`${HOST_BACKEND}/pagamento`),
+        fetch(`${HOST_BACKEND}/pagamento_forma`).catch(() => ({ ok: false })), 
+        fetch(`${HOST_BACKEND}/forma_pagamento`).catch(() => ({ ok: false })),
+        fetch(`${HOST_BACKEND}/pedido_produto`).catch(() => ({ ok: false })), 
+        fetch(`${HOST_BACKEND}/produto`).catch(() => ({ ok: false }))
+    ]);
+
     if (!resPedidos.ok) {
-      console.error('Erro na requisição de pedidos por cliente:', resPedidos.status, await resPedidos.text());
-      listaEl.innerHTML = '<p>Erro ao carregar pedidos do servidor.</p>';
+      listaEl.innerHTML = '<p class="loading-msg">Erro ao carregar pedidos do servidor.</p>';
       return;
     }
-    const pedidos = await resPedidos.json();
-    console.log('Pedidos retornados pelo backend (cliente):', pedidos);
 
-    const meusPedidos = pedidos; // já são os pedidos do cliente retornados pelo backend
+    // Converter Respostas para JSON
+    const pedidos = await resPedidos.json();
+    const pagamentos = resPagamentos.ok ? await resPagamentos.json() : [];
+    const relacaoPg = resRelacaoPg.ok ? await resRelacaoPg.json() : [];
+    const formasPg = resFormasPg.ok ? await resFormasPg.json() : [];
+    const todosItensPedido = resItensPedido.ok ? await resItensPedido.json() : [];
+    const catalogoProdutos = resProdutos.ok ? await resProdutos.json() : [];
+
+    const meusPedidos = pedidos;
 
     if (meusPedidos.length === 0) {
-      listaEl.innerHTML = '<p>Nenhum pedido encontrado para esta conta.</p>';
+      listaEl.innerHTML = '<p class="loading-msg">Nenhum pedido encontrado para esta conta.</p>';
       return;
     }
 
-    // Carrega todos os pagamentos para relacionar
-    const resPagamentos = await fetch(`${HOST_BACKEND}/pagamento`);
-    const pagamentos = await resPagamentos.json();
-
-    // Cria marcação
     const container = document.createElement('div');
 
+    // Renderização dos Cards
     meusPedidos.forEach(pedido => {
-      const pedidoBox = document.createElement('div');
-      pedidoBox.style.backgroundColor = '#fff';
-      pedidoBox.style.padding = '20px';
-      pedidoBox.style.marginBottom = '16px';
-      pedidoBox.style.borderRadius = '8px';
-      pedidoBox.style.boxShadow = '0 6px 15px rgba(0,0,0,0.08)';
+      // Normalização de IDs
+      const idPedido = pedido.idpedido || pedido.idPedido;
+      const dataRaw = pedido.datadopedido || pedido.dataDoPedido;
+      
+      // --- Lógica de Pagamento ---
+      const pgDoPedido = pagamentos.find(pg => String(pg.pedidoidpedido || pg.PedidoIdPedido) === String(idPedido));
+      
+      let valorTotal = 0;
+      let dataPagamentoRaw = null;
+      let nomeFormaPagamento = "Aguardando Pagamento";
+      let statusClass = "badge-pendente";
 
-      const h = document.createElement('h3');
-      h.textContent = `Pedido #${pedido.idpedido || pedido.idPedido || pedido.idPedido || pedido.idPedido}`;
-      pedidoBox.appendChild(h);
+      if (pgDoPedido) {
+        valorTotal = Number(pgDoPedido.valortotalpagamento || pgDoPedido.valorTotalPagamento || 0);
+        dataPagamentoRaw = pgDoPedido.datapagamento || pgDoPedido.dataPagamento;
+        statusClass = "badge-pagamento";
 
-      const meta = document.createElement('p');
-      meta.innerHTML = `<strong>Data:</strong> ${pedido.datadopedido || pedido.dataDoPedido || pedido.datadopedido || ''} &nbsp; <strong>Cliente ID:</strong> ${pedido.clientepessoaidpessoa || pedido.ClientePessoaIdPessoa || ''}`;
-      pedidoBox.appendChild(meta);
-
-      // Lista itens de pagamento relacionados ao pedido
-      const pagamentosDoPedido = pagamentos.filter(pg => String(pg.pedidoidpedido || pg.PedidoIdPedido || pg.PedidoIdPedido) === String(pedido.idpedido || pedido.idPedido || pedido.idPedido));
-
-      if (pagamentosDoPedido.length > 0) {
-        const tituloPag = document.createElement('h4');
-        tituloPag.textContent = 'Pagamentos';
-        pedidoBox.appendChild(tituloPag);
-
-        pagamentosDoPedido.forEach(pg => {
-          const pgEl = document.createElement('div');
-          pgEl.style.borderTop = '1px solid #eee';
-          pgEl.style.paddingTop = '8px';
-          pgEl.innerHTML = `<p><strong>Data do pagamento:</strong> ${pg.datapagamento || pg.dataPagamento || ''}</p>
-            <p><strong>Valor:</strong> R$ ${Number(pg.valortotalpagamento || pg.valorTotalPagamento || pg.valorTotalPagamento || 0).toFixed(2)}</p>`;
-          pedidoBox.appendChild(pgEl);
-        });
-      } else {
-        const noPg = document.createElement('p');
-        noPg.textContent = 'Nenhum pagamento registrado para este pedido.';
-        pedidoBox.appendChild(noPg);
+        // Cruzar Pagamento -> Forma
+        const relacao = relacaoPg.find(r => String(r.pagamentoidpedido || r.PagamentoIdPedido) === String(idPedido));
+        if (relacao) {
+            const idForma = relacao.formapagamentoidformapagamento || relacao.FormaPagamentoIdFormaPagamento;
+            const formaObj = formasPg.find(f => String(f.idformapagamento || f.idFormaPagamento) === String(idForma));
+            if (formaObj) nomeFormaPagamento = formaObj.nomeformapagamento || formaObj.nomeFormaPagamento;
+        } else {
+            nomeFormaPagamento = "Pago";
+        }
       }
 
-      container.appendChild(pedidoBox);
+      // --- Lógica de Produtos (Itens) ---
+      const itensDestePedido = todosItensPedido.filter(item => 
+        String(item.pedidoidpedido || item.PedidoIdPedido) === String(idPedido)
+      );
+
+      let htmlItens = '';
+      if (itensDestePedido.length > 0) {
+        htmlItens = `<div class="itens-container"><div class="titulo-itens">Itens Comprados</div>`;
+        
+        itensDestePedido.forEach(itemRelacao => {
+            const idProd = itemRelacao.produtoidproduto || itemRelacao.ProdutoIdProduto;
+            const qtd = itemRelacao.quantidade || 0;
+            const precoUnitario = Number(itemRelacao.precounitario || itemRelacao.precoUnitario || 0);
+            
+            const produtoDetalhes = catalogoProdutos.find(p => String(p.idproduto || p.idProduto) === String(idProd));
+            const nomeProduto = produtoDetalhes ? (produtoDetalhes.nomeproduto || produtoDetalhes.nomeProduto) : `Produto #${idProd}`;
+
+            htmlItens += `
+                <div class="item-row">
+                    <span class="item-qtd">${qtd}x</span>
+                    <span class="item-nome">${nomeProduto}</span>
+                    <span class="item-preco">${(precoUnitario * qtd).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                </div>
+            `;
+        });
+        htmlItens += `</div>`;
+      } else {
+        htmlItens = `<div class="itens-container" style="color:#999; font-style:italic; padding:10px;">Nenhum item detalhado encontrado.</div>`;
+      }
+
+      // --- Formatadores ---
+      const dataFormatada = dataRaw ? new Date(dataRaw).toLocaleDateString('pt-BR') : '--/--/----';
+      const valorFormatado = valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      const dataPagamentoFormatada = dataPagamentoRaw ? new Date(dataPagamentoRaw).toLocaleString('pt-BR') : 'Pendente';
+
+      // --- Montagem do HTML Final ---
+      const card = document.createElement('div');
+      card.className = 'pedido-card';
+      
+      card.innerHTML = `
+        <div class="pedido-header">
+            <span class="pedido-id">Pedido #${idPedido}</span>
+            <span class="pedido-data">📅 ${dataFormatada}</span>
+        </div>
+        
+        <div class="pedido-body">
+             <div class="info-linha">
+                <span class="label">Cliente (CPF):</span>
+                <span class="valor">${pedido.clientepessoacpfpessoa || pedido.ClientePessoaCpfPessoa || '...'}</span>
+             </div>
+             <div class="info-linha">
+                <span class="label">Data Pagamento:</span>
+                <span class="valor">${dataPagamentoFormatada}</span>
+             </div>
+
+             ${htmlItens}
+        </div>
+
+        <div class="pedido-footer">
+            <div class="metodo-pg">
+                <span class="${statusClass}">
+                   ${statusClass === 'badge-pagamento' ? '✔' : '⏳'} ${nomeFormaPagamento}
+                </span>
+            </div>
+            <div class="total-container">
+                <span class="total-label">Valor Total</span>
+                <span class="total-valor">${valorFormatado}</span>
+            </div>
+        </div>
+      `;
+
+      container.appendChild(card);
     });
 
     listaEl.innerHTML = '';
@@ -83,14 +154,14 @@ async function carregarPedidosUsuario() {
 
   } catch (error) {
     console.error('Erro ao carregar pedidos:', error);
-    listaEl.innerHTML = '<p>Erro ao carregar pedidos. Verifique a conexão com o servidor.</p>';
+    listaEl.innerHTML = '<p class="loading-msg">Erro fatal ao carregar pedidos. Verifique o console.</p>';
   }
 }
 
+// Inicialização e Lógica de Usuário
 window.addEventListener('DOMContentLoaded', () => {
   carregarPedidosUsuario();
 
-  // Reutiliza lógica de exibir botão de login/perfil similar ao menu
   const usuarioLogado = localStorage.getItem('usuarioLogado');
   const userArea = document.getElementById('user-area');
   const loginButton = document.getElementById('loginButton');
@@ -107,15 +178,24 @@ window.addEventListener('DOMContentLoaded', () => {
     const menuPerfil = document.createElement('div');
     menuPerfil.style.cssText = 'display: none; position: absolute; top: 45px; right: 0; background-color: #fff; border: 1px solid #ccc; border-radius: 6px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 1000; min-width: 120px;';
     menuPerfil.innerHTML = `<button style="background:none; border:none; color:#8B1E3F; padding:10px; cursor:pointer; width:100%; text-align: left; font-size: 16px;" onclick="logout()">Sair</button>`;
+    
     perfilIcon.appendChild(menuPerfil);
-    perfilIcon.onclick = function (e) { e.stopPropagation(); menuPerfil.style.display = menuPerfil.style.display === 'none' ? 'block' : 'none'; };
-    document.addEventListener('click', function (e) { if (!perfilIcon.contains(e.target)) { menuPerfil.style.display = 'none'; } });
+    
+    perfilIcon.onclick = function (e) { 
+        e.stopPropagation(); 
+        menuPerfil.style.display = menuPerfil.style.display === 'none' ? 'block' : 'none'; 
+    };
+    
+    document.addEventListener('click', function (e) { 
+        if (!perfilIcon.contains(e.target)) { 
+            menuPerfil.style.display = 'none'; 
+        } 
+    });
 
     userArea.appendChild(perfilIcon);
   }
 });
 
-// logout local (mantém comportamento do menu.js)
 function logout() {
   localStorage.removeItem('usuarioLogado');
   localStorage.removeItem('perfilUsuario');

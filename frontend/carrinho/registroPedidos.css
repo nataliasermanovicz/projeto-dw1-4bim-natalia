@@ -1,0 +1,176 @@
+/* Layout Principal */
+main {
+    max-width: 1000px; 
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.loading-msg {
+    text-align: center;
+    color: #666;
+    font-size: 1.1em;
+    margin-top: 50px;
+}
+
+/* --- CARD DO PEDIDO --- */
+.pedido-card {
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    overflow: hidden;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.pedido-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+}
+
+/* Cabeçalho do Card */
+.pedido-header {
+    background-color: #f8f9fa;
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pedido-id { 
+    font-weight: 700; 
+    color: #333; 
+    font-size: 1.1em; 
+}
+
+.pedido-data { 
+    color: #666; 
+    font-size: 0.9em; 
+    display: flex; 
+    align-items: center; 
+    gap: 5px; 
+}
+
+/* Corpo do Card */
+.pedido-body { 
+    padding: 20px; 
+}
+
+.info-linha {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 0.95em;
+}
+
+.label { 
+    font-weight: 600; 
+    color: #777; 
+}
+
+.valor { 
+    color: #333; 
+    font-weight: 500; 
+}
+
+/* --- LISTA DE PRODUTOS --- */
+.itens-container {
+    margin-top: 20px;
+    background-color: #fafafa;
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px dashed #ddd;
+}
+
+.titulo-itens {
+    font-size: 0.85em;
+    text-transform: uppercase;
+    color: #888;
+    font-weight: bold;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+
+.item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 0.95em;
+}
+
+.item-row:last-child { 
+    border-bottom: none; 
+}
+
+.item-qtd { 
+    font-weight: bold; 
+    color: #333; 
+    margin-right: 8px; 
+    min-width: 30px; 
+}
+
+.item-nome { 
+    flex-grow: 1; 
+    padding-right: 10px; 
+    color: #444; 
+}
+
+.item-preco { 
+    color: #666; 
+    font-size: 0.9em; 
+}
+
+/* Rodapé do Card */
+.pedido-footer {
+    background-color: #fff;
+    padding: 15px 20px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to right, #fff, #f9fff9);
+}
+
+/* Badges de Status */
+.badge-pagamento, .badge-pendente {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.badge-pagamento {
+    background-color: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #bbdefb;
+}
+
+.badge-pendente {
+    background-color: #fff3e0;
+    color: #ef6c00;
+    border: 1px solid #ffe0b2;
+}
+
+/* Totais */
+.total-container { 
+    text-align: right; 
+}
+
+.total-label { 
+    font-size: 0.8em; 
+    color: #888; 
+    display: block; 
+}
+
+.total-valor { 
+    font-size: 1.3em; 
+    color: #2e7d32; 
+    font-weight: 800; 
+}

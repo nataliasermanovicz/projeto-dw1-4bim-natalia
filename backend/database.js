@@ -5,13 +5,13 @@ const dbConfig = {
   host: 'localhost',
   port: 5432,
   // user: 'postgres',
-  // password: 'sermanovicz09',
+  // password: 'postgres',
   // database: 'dw4bim',
 
 
-  user: 'radames',
-  password: 'Lageado001.',
-  database: 'natalia-4bim',
+  user: 'postgres',
+  password: 'postgres',
+  database: 'dw4bim',
 
   ssl: false,
   idleTimeoutMillis: 30000,
