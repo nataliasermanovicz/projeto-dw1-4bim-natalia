@@ -18,6 +18,22 @@ exports.listarPedido = async (req, res) => {
   }
 };
 
+exports.criarProximoPedido = async (req, res) => {
+  console.log('Rota PedidoController.criarProximoPedido - corpo recebido:', req.body);
+
+  try {
+    const { datadopedido: datadopedido, clientepessoacpfpessoa: clientepessoacpfpessoa, funcionariopessoacpfpessoa: funcionariopessoacpfpessoa } = req.body;  
+    const result = await query(
+      'INSERT INTO pedido (datadopedido, clientepessoacpfpessoa, funcionariopessoacpfpessoa) VALUES ($1, $2, $3) RETURNING *',
+      [datadopedido, clientepessoacpfpessoa, funcionariopessoacpfpessoa]
+    );  
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Erro ao criar próximo pedido:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+};
+
 // Criar pedido
 exports.criarPedido = async (req, res) => {
   try {

@@ -9,8 +9,20 @@ exports.abrirCrudPedidoHasProduto = (req, res) => {
   res.sendFile(path.join(__dirname, '../../html/pedidoHasProduto/pedidoHasProduto.html'));
 }
 
+exports.adicionarProdutoAoPedido = async (req, res) => {
 
-
+  try {
+    const { pedidoidpedido, produtoidproduto, quantidade, precounitario} = req.body;  
+    const result = await query(
+      'INSERT INTO PedidoHasProduto (pedidoidpedido, produtoidproduto, quantidade, precounitario) VALUES ($1, $2, $3 , $4) RETURNING *',
+      [pedidoidpedido, produtoidproduto, quantidade, precounitario]
+    );  
+    res.status(201).json(result.rows[0]);
+  }  catch (error) {    
+    console.error('Erro ao adicionar produto ao pedido:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }   
+}
 // Lista todos os registros de PedidoHasProduto
 exports.listarPedidoHasProduto = async (req, res) => {
   try {

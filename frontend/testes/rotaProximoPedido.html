@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Próximo Pedido</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .result {
+            margin-top: 25px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 15px;
+            color: #667eea;
+        }
+        
+        .test-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .test-btn {
+            flex: 1;
+            padding: 10px;
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .test-btn:hover {
+            background: #e0e0e0;
+        }
+        
+        .note {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        
+        .api-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 30px;
+            font-size: 13px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Criar Próximo Pedido</h1>
+        
+        <form id="pedidoForm">
+            <div class="form-group">
+                <label for="dataDoPedido">Data do Pedido:</label>
+                <input type="date" id="dataDoPedido" required>
+                <div class="note">Formato: YYYY-MM-DD</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="ClientePessoaCpfPessoa">CPF do Cliente:</label>
+                <input type="text" id="ClientePessoaCpfPessoa" placeholder="123.456.789-01" required>
+                <div class="note">Apenas números (11 dígitos)</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="FuncionarioPessoaCpfPessoa">CPF do Funcionário:</label>
+                <input type="text" id="FuncionarioPessoaCpfPessoa" placeholder="987.654.321-09" required>
+                <div class="note">Apenas números (11 dígitos)</div>
+            </div>
+            
+            <button type="submit">Criar Próximo Pedido</button>
+            
+            <div class="loading" id="loading">
+                Enviando dados, por favor aguarde...
+            </div>
+        </form>
+        
+        <div class="test-buttons">
+            <button class="test-btn" onclick="fillTestData1()">Preencher Dados Teste 1</button>
+            <button class="test-btn" onclick="fillTestData2()">Preencher Dados Teste 2</button>
+        </div>
+        
+        <div class="result" id="result"></div>
+        
+        <div class="api-info">
+            <strong>Informações da API:</strong><br>
+            Método: <code>POST</code><br>
+            Endpoint: <code>/pedido/criarProximoPedido</code><br>
+            <br>
+            <strong>Corpo da requisição (JSON):</strong><br>
+            <code>
+            {<br>
+            &nbsp;&nbsp;"dataDoPedido": "2023-12-01",<br>
+            &nbsp;&nbsp;"ClientePessoaCpfPessoa": "12345678901",<br>
+            &nbsp;&nbsp;"FuncionarioPessoaCpfPessoa": "98765432109"<br>
+            }
+            </code>
+        </div>
+    </div>
+
+    <script>
+        // URL base da sua API - ajuste conforme necessário
+        const API_BASE_URL = 'http://localhost:3001/pedido';
+        
+        // Formatar CPF (remover pontos e traços)
+        function formatCpf(cpf) {
+            return cpf.replace(/\D/g, '');
+        }
+        
+        // Validar CPF (apenas valida se tem 11 dígitos)
+        function validateCpf(cpf) {
+            const cpfNumeros = formatCpf(cpf);
+            return cpfNumeros.length === 11;
+        }
+        
+        // Preencher dados de teste 1
+        function fillTestData1() {
+            document.getElementById('dataDoPedido').value = '2023-12-01';
+            document.getElementById('ClientePessoaCpfPessoa').value = '12345678901';
+            document.getElementById('FuncionarioPessoaCpfPessoa').value = '98765432109';
+        }
+        
+        // Preencher dados de teste 2
+        function fillTestData2() {
+            const hoje = new Date();
+            const dataFormatada = hoje.toISOString().split('T')[0];
+            
+            document.getElementById('dataDoPedido').value = dataFormatada;
+            document.getElementById('ClientePessoaCpfPessoa').value = '11122233344';
+            document.getElementById('FuncionarioPessoaCpfPessoa').value = '55566677788';
+        }
+        
+        // Mostrar resultado
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = message;
+            resultDiv.className = 'result ' + type;
+            resultDiv.style.display = 'block';
+            
+            // Rolar para o resultado
+            resultDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Lidar com envio do formulário
+        document.getElementById('pedidoForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Mostrar loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result').style.display = 'none';
+            
+            // Coletar dados do formulário
+            const dataDoPedido = document.getElementById('dataDoPedido').value;
+            const clienteCpf = document.getElementById('ClientePessoaCpfPessoa').value;
+            const funcionarioCpf = document.getElementById('FuncionarioPessoaCpfPessoa').value;
+            
+            // Validar CPFs
+            if (!validateCpf(clienteCpf)) {
+                showResult('CPF do Cliente inválido. Deve conter 11 dígitos.', 'error');
+                document.getElementById('loading').style.display = 'none';
+                return;
+            }
+            
+            if (!validateCpf(funcionarioCpf)) {
+                showResult('CPF do Funcionário inválido. Deve conter 11 dígitos.', 'error');
+                document.getElementById('loading').style.display = 'none';
+                return;
+            }
+            
+            // Preparar dados para envio
+            const pedidoData = {
+                dataDoPedido: dataDoPedido,
+                ClientePessoaCpfPessoa: formatCpf(clienteCpf),
+                FuncionarioPessoaCpfPessoa: formatCpf(funcionarioCpf)
+            };
+            
+            console.log('Enviando dados:', pedidoData);
+            
+            try {
+                // Fazer a requisição POST
+                const response = await fetch(`${API_BASE_URL}/criarProximoPedido`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(pedidoData)
+                });
+                
+                const result = await response.json();
+                
+                // Esconder loading
+                document.getElementById('loading').style.display = 'none';
+                
+                if (response.ok) {
+                    // Sucesso
+                    showResult(
+                        `✅ Pedido criado com sucesso!<br><br>
+                        <strong>ID:</strong> ${result.id}<br>
+                        <strong>Data:</strong> ${result.dataDoPedido}<br>
+                        <strong>Cliente:</strong> ${result.ClientePessoaCpfPessoa}<br>
+                        <strong>Funcionário:</strong> ${result.FuncionarioPessoaCpfPessoa}<br>
+                        <strong>Criado em:</strong> ${new Date().toLocaleString()}`,
+                        'success'
+                    );
+                    
+                    // Limpar formulário (opcional)
+                    // document.getElementById('pedidoForm').reset();
+                } else {
+                    // Erro da API
+                    showResult(
+                        `❌ Erro ao criar pedido: ${response.status} ${response.statusText}<br>
+                        <strong>Detalhes:</strong> ${JSON.stringify(result)}`,
+                        'error'
+                    );
+                }
+            } catch (error) {
+                // Erro de rede ou outro erro
+                document.getElementById('loading').style.display = 'none';
+                showResult(
+                    `❌ Erro na conexão com a API:<br>
+                    <strong>Mensagem:</strong> ${error.message}<br><br>
+                    Verifique se:<br>
+                    1. O servidor está rodando<br>
+                    2. A URL da API está correta<br>
+                    3. A rota está definida como POST<br>
+                    4. A ordem das rotas está correta no router`,
+                    'error'
+                );
+                
+                console.error('Erro completo:', error);
+            }
+        });
+        
+        // Inicializar com a data de hoje
+        window.onload = function() {
+            const hoje = new Date();
+            const dataFormatada = hoje.toISOString().split('T')[0];
+            document.getElementById('dataDoPedido').value = dataFormatada;
+        };
+    </script>
+</body>
+</html>
