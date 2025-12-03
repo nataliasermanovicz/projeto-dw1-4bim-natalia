@@ -66,9 +66,19 @@ async function realizarLogin() {
             if (result.perfil) {
                 localStorage.setItem('perfilUsuario', result.perfil);
             }
+            // Salva o flag de gerente
+            if (result.ehGerente) {
+                localStorage.setItem('ehGerente', 'true');
+            }
 
-        // Redireciona para a rota do servidor que serve o menu
-        window.location.href = `${HOST_BACKEND}/menu`;
+        // Redireciona para a tela apropriada
+        if (result.ehGerente) {
+          // Se é gerente, redireciona para menu especial
+          window.location.href = `${HOST_BACKEND}/frontend-Gerente/menu.html`;
+        } else {
+          // Caso contrário, vai para o menu normal
+          window.location.href = `${HOST_BACKEND}/menu`;
+        }
       
     } else if (result.status === 'senha_incorreta') {
       alert('Email ou senha incorretos. Tente novamente.');

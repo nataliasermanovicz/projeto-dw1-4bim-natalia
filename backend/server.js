@@ -17,6 +17,11 @@ app.use('/css', express.static(path.join(__dirname, '../')));
 const caminhoFrontend = path.join(__dirname, '../frontend');
 console.log('Caminho frontend:', caminhoFrontend);
 app.use(express.static(caminhoFrontend));
+
+const caminhoFrontendGerente = path.join(__dirname, '../frontend-Gerente');
+console.log('Caminho frontend-Gerente:', caminhoFrontendGerente);
+app.use('/frontend-Gerente', express.static(caminhoFrontendGerente));
+
 app.use(cookieParser());
 
 app.use((req, res, next) => {

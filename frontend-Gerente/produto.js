@@ -23,7 +23,7 @@ async function carregarProdutoBackend() {
         // Atualiza os elementos HTML com os dados do produto
         document.getElementById('nomeProduto').textContent = produtoSelecionado.nomeproduto;
         // Assume o caminho da imagem relativo ao servidor
-        document.getElementById('imagemProduto').src = `../${produtoSelecionado.imagemproduto}`;
+        document.getElementById('imagemProduto').src = `../../${produtoSelecionado.imagemproduto}`;
         
         // Adiciona a chave precounitario ao objeto selecionado para uso no carrinho
         // Se o seu backend não retorna o preço na busca de todos os produtos, ajuste aqui

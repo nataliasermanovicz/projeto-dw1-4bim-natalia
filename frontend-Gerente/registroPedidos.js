@@ -23,7 +23,7 @@ function getProp(obj, terms) {
 }
 
 async function carregarPedidosUsuario() {
-    const listaEl = document.getElementById('pedidos-lista');
+    const listaEl = document.getElementById('registro-pedidos-lista');
     
     // ⚠️ MELHORIA DE CONSISTÊNCIA: Apenas um local para obter o ID do cliente.
     // Prioriza 'cpfUsuarioLogado' para consistência, mas aceita 'clienteIdPessoa'
@@ -235,40 +235,6 @@ async function carregarPedidosUsuario() {
 // Inicialização e Lógica de Usuário
 window.addEventListener('DOMContentLoaded', () => {
     carregarPedidosUsuario();
-
-    // Lógica do Header (Login/Logout)
-    const usuarioLogado = localStorage.getItem('usuarioLogado');
-    const userArea = document.getElementById('user-area');
-    const loginButton = document.getElementById('loginButton');
-
-    if (usuarioLogado === 'true' && userArea) {
-        if (loginButton) loginButton.remove();
-
-        const perfilIcon = document.createElement('div');
-        perfilIcon.className = 'perfil-icon';
-        perfilIcon.textContent = '👤';
-        perfilIcon.title = 'Perfil';
-        perfilIcon.style.cssText = 'position: relative; cursor: pointer; width: 40px; height: 40px; border-radius: 50%; background-color: #8B1E3F; display: inline-flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px; margin-left: 10px;';
-
-        const menuPerfil = document.createElement('div');
-        menuPerfil.style.cssText = 'display: none; position: absolute; top: 45px; right: 0; background-color: #fff; border: 1px solid #ccc; border-radius: 6px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 1000; min-width: 120px;';
-        menuPerfil.innerHTML = `<button style="background:none; border:none; color:#8B1E3F; padding:10px; cursor:pointer; width:100%; text-align: left; font-size: 16px;" onclick="logout()">Sair</button>`;
-        
-        perfilIcon.appendChild(menuPerfil);
-        
-        perfilIcon.onclick = function (e) { 
-            e.stopPropagation(); 
-            menuPerfil.style.display = menuPerfil.style.display === 'none' ? 'block' : 'none'; 
-        };
-        
-        document.addEventListener('click', function (e) { 
-            if (!perfilIcon.contains(e.target)) { 
-                menuPerfil.style.display = 'none'; 
-            } 
-        });
-
-        userArea.appendChild(perfilIcon);
-    }
 });
 
 function logout() {
@@ -277,9 +243,10 @@ function logout() {
     localStorage.removeItem('usuarioEmail');
     localStorage.removeItem('clienteIdPessoa');
     localStorage.removeItem('cpfUsuarioLogado'); 
+    localStorage.removeItem('ehGerente');
     localStorage.removeItem('carrinho');
     
-    window.location.href = `http://localhost:3001/menu`; 
+    irParaMenu();
 }
 
 // Expõe a função para ser usada no onclick do HTML

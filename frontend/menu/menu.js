@@ -4,6 +4,19 @@ const HOST_BACKEND = 'http://localhost:3001';
 /**
  * Função assíncrona para carregar a lista de produtos da API e renderizar na tela.
  */
+// Helper: busca campo com variações de nome
+function getField(obj, fields) {
+  for (const f of fields) {
+    if (obj[f] !== undefined) return obj[f];
+  }
+  return undefined;
+}
+
+function formatPrice(value) {
+  const v = Number(value || 0);
+  return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
 async function carregarProdutos() {
   try {
     const res = await fetch(`${HOST_BACKEND}/produto`);
@@ -20,10 +33,18 @@ async function carregarProdutos() {
       // Caminho da imagem: ajustado para usar a variável do backend
       let oSrc = `../${prod.imagemproduto}`; // Assumindo que a imagem está 2 níveis acima do menu.html
 
+      // Preço: tenta várias chaves possíveis que seu backend pode retornar
+      const precoVal = getField(prod, ['precoUnitario', 'precounitario', 'preco', 'price']) || 0;
+      const precoStr = formatPrice(precoVal);
+
+      const nome = getField(prod, ['nomeProduto', 'nomeproduto', 'nome']) || 'Produto';
+      const id = getField(prod, ['idProduto', 'idproduto', 'id']) || '';
+
       article.innerHTML = `
-        <img src="${oSrc}" alt="${prod.nomeproduto}">
-        <p>${prod.nomeproduto}</p>
-        <button onclick="window.location.href='../produto/produto.html?id=${prod.idproduto}'">Ver mais</button>
+        <img src="${oSrc}" alt="${nome}">
+        <p class="nome-prod">${nome}</p>
+        <p class="preco-prod">${precoStr}</p>
+        <button onclick="window.location.href='../produto/produto.html?id=${id}'">Ver mais</button>
       `;
       lista.appendChild(article);
     });

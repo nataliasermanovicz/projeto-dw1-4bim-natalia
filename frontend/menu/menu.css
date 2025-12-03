@@ -133,6 +133,20 @@ button:hover {
   flex-grow: 1; /* Garante que o texto ocupe o espaço restante, alinhando os botões na parte inferior */
 }
 
+/* Preço do produto no card */
+.produto .preco-prod {
+  margin: 6px 0 12px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #8B1E3F;
+}
+
+.produto .nome-prod {
+  margin: 12px 0 6px 0;
+  font-size: 18px;
+  color: #333;
+}
+
 .produto button {
   background-color: #8B1E3F;
   color: #fff;

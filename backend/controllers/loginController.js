@@ -58,8 +58,10 @@ exports.verificarSenha = async (req, res) => {
   `;
 
   const sqlFuncionario = `
-    SELECT * FROM Funcionario 
-    WHERE pessoacpfpessoa = $1
+    SELECT f.*, c.nomecargo 
+    FROM Funcionario f
+    LEFT JOIN Cargo c ON f.CargosIdCargo = c.idCargo
+    WHERE f.pessoacpfpessoa = $1
   `;
 
   try {
@@ -74,30 +76,40 @@ exports.verificarSenha = async (req, res) => {
     
     // 2. Define o Perfil e verifica se é cliente/funcionário
     let perfil = 'cliente'; // Padrão
+    let ehGerente = false;
     
     // 2a. Verifica se é cliente
     const resultCliente = await db.query(sqlCliente, [cpfpessoa]);
     const ehCliente = resultCliente.rows.length > 0;
 
-    // 2b. Verifica se é funcionário
+    // 2b. Verifica se é funcionário e qual é o cargo
     const resultFuncionario = await db.query(sqlFuncionario, [cpfpessoa]);
     const ehFuncionario = resultFuncionario.rows.length > 0;
     
-    // Define o perfil final
     if (ehFuncionario) {
+      const funcionarioData = resultFuncionario.rows[0];
+      const cargo = funcionarioData.nomecargo || '';
+      
+      // Verifica se o cargo é Gerente (case-insensitive)
+      if (cargo.toLowerCase().includes('gerente')) {
+        ehGerente = true;
+        perfil = 'gerente';
+      } else {
         perfil = 'funcionario';
-        // Se a regra é que funcionários também podem ser clientes:
-        if (ehCliente) {
-             perfil = 'cliente_funcionario'; 
-        }
+      }
+      
+      // Se a regra é que funcionários também podem ser clientes:
+      if (ehCliente && perfil !== 'gerente') {
+        perfil = 'cliente_funcionario'; 
+      }
     } else if (ehCliente) {
-        perfil = 'cliente';
+      perfil = 'cliente';
     } else {
-        // Se a pessoa existe, mas não é nem cliente nem funcionário (raro, mas possível)
-        perfil = 'indefinido';
+      // Se a pessoa existe, mas não é nem cliente nem funcionário (raro, mas possível)
+      perfil = 'indefinido';
     }
 
-    console.log(`Usuário encontrado: ${nomepessoa}, CPF: ${cpfpessoa}, Perfil: ${perfil}`);
+    console.log(`Usuário encontrado: ${nomepessoa}, CPF: ${cpfpessoa}, Perfil: ${perfil}, Gerente: ${ehGerente}`);
 
     // 3. Define cookie (armazena o NOME)
     // Define secure apenas em produção (em desenvolvimento localhost sem HTTPS, secure:true impede o cookie)
@@ -112,14 +124,16 @@ exports.verificarSenha = async (req, res) => {
 
     console.log("Cookie 'usuarioLogado' definido com sucesso");
 
-    // 4. Retorna dados para o frontend (com as novas chaves idpessoa e perfil)
+    // 4. Retorna dados para o frontend (com as novas chaves idpessoa, perfil e ehGerente)
     return res.json({
       status: 'ok',
       nome: nomepessoa,
       // 💡 ALTERAÇÃO 1: Retorna o ID da pessoa (CPF), necessário para a compra no frontend
       idpessoa: cpfpessoa, 
       // 💡 ALTERAÇÃO 2: Retorna o perfil para decisões de navegação/permissão no frontend
-      perfil: perfil, 
+      perfil: perfil,
+      // 💡 ALTERAÇÃO 3: Retorna se é gerente para redirecionar para menu especial
+      ehGerente: ehGerente
     });
 
   } catch (err) {

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Menu Gerente - Nail Polish</title>
+  <link rel="stylesheet" href="menu.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="top-bar">
+  <h1>👑 Menu Gerente</h1>
+  <div class="top-right-buttons" id="user-area">
+  <button onclick="irParaCarrinho()">Ver Carrinho 🛒</button>
+  <div id="gerente-icon-area" style="display:inline-block; position:relative;">
+    <span id="gerente-icon" title="Perfil Gerente" style="cursor:pointer; font-size:28px; margin-left:10px; color:#8B1E3F;">👑</span>
+    <div id="gerente-dropdown" style="display:none; position:absolute; top:40px; right:0; background:#fff; border:1px solid #ccc; border-radius:6px; box-shadow:0 4px 12px rgba(0,0,0,0.12); min-width:120px; z-index:1000;">
+      <button style="background:none; border:none; color:#333; padding:12px; cursor:pointer; width:100%; text-align:left; font-size:14px; font-weight:500;" onclick="event.stopPropagation(); logout();">Sair</button>
+    </div>
+  </div>
+ </div>
+</header>
+
+<main id="home">
+  <!-- Abas de Navegação -->
+  <div class="aba-container">
+    <button class="aba-btn aba-ativa" onclick="abrirAba('gerenciamento', this)">⚙️ Gerenciamento</button>
+    <button class="aba-btn" onclick="abrirAba('produtos', this)">📦 Produtos</button>
+  </div>
+
+  <!-- Aba de Gerenciamento -->
+  <div id="gerenciamento" class="aba-conteudo aba-ativa-conteudo">
+    <nav class="gerente-nav">
+      <div class="gerente-menu-item">
+        <h3>📦 Produtos</h3>
+        <p>Gerenciar catálogo de produtos</p>
+        <button onclick="window.location.href='#'">Editar Produtos</button>
+      </div>
+
+      <div class="gerente-menu-item">
+        <h3>👥 Clientes</h3>
+        <p>Visualizar e gerenciar clientes</p>
+        <button onclick="window.location.href='#'">Gerenciar Clientes</button>
+      </div>
+
+      <div class="gerente-menu-item">
+        <h3>📋 Pedidos</h3>
+        <p>Acompanhar e processar pedidos</p>
+        <button onclick="window.location.href='#'">Ver Pedidos</button>
+      </div>
+
+      <div class="gerente-menu-item">
+        <h3>💳 Pagamentos</h3>
+        <p>Controlar pagamentos recebidos</p>
+        <button onclick="window.location.href='#'">Ver Pagamentos</button>
+      </div>
+
+      <div class="gerente-menu-item">
+        <h3>👔 Funcionários</h3>
+        <p>Gerenciar equipe e cargos</p>
+        <button onclick="window.location.href='#'">Gerenciar Funcionários</button>
+      </div>
+
+      <div class="gerente-menu-item">
+        <h3>📊 Relatórios</h3>
+        <p>Visualizar estatísticas e vendas</p>
+        <button onclick="window.location.href='#'">Ver Relatórios</button>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Aba de Produtos (igual ao cliente) -->
+  <div id="produtos" class="aba-conteudo">
+    <section class="produtos" id="produtos-lista">
+      <p>Carregando produtos...</p>
+    </section>
+  </div>
+</main>
+
+<script src="../context-helper.js"></script>
+<script src="menu.js"></script>
+
+</body>
+</html>

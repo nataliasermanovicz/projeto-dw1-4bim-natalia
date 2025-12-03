@@ -1,0 +1,352 @@
+/* ==================================== */
+/* 1. ESTILOS GERAIS/BASE               */
+/* ==================================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #f5f5f5;
+  color: #333;
+  line-height: 1.6;
+  padding: 0 20px;
+}
+
+h1, h2, h3, h4 {
+  font-weight: 500;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Estilo padrão para todos os botões */
+button {
+  background-color: #8B1E3F; /* Vermelho Bordô */
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 18px;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #7a1634; /* Bordô mais escuro */
+}
+
+/* ==================================== */
+/* 2. CABEÇALHO (top-bar)               */
+/* ==================================== */
+
+.top-bar {
+  background: linear-gradient(135deg, #8B1E3F, #a62f52);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 30px;
+  box-shadow: 0 4px 15px rgba(139, 30, 63, 0.3);
+  border-bottom: 3px solid #ffcc00;
+}
+
+.top-bar h1 {
+  font-size: 28px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Container de Botões no Cabeçalho */
+.top-right-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.top-right-buttons button {
+  padding: 12px 20px;
+  font-size: 16px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border: 2px solid #fff;
+  color: #fff;
+}
+
+.top-right-buttons button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* ==================================== */
+/* 3. ABAS DE NAVEGAÇÃO                 */
+/* ==================================== */
+
+.aba-container {
+  display: flex;
+  gap: 10px;
+  padding: 20px 0;
+  border-bottom: 2px solid #ddd;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.aba-btn {
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #f0f0f0;
+  color: #333;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  border-radius: 6px 6px 0 0;
+  transition: all 0.3s ease;
+}
+
+.aba-btn:hover {
+  background-color: #e0e0e0;
+}
+
+.aba-btn.aba-ativa {
+  background-color: #8B1E3F;
+  color: #fff;
+  border-bottom-color: #FFD700;
+}
+
+.aba-conteudo {
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.aba-conteudo.aba-ativa-conteudo {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ==================================== */
+/* 4. MENU DE GERENTE                   */
+/* ==================================== */
+
+.gerente-nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 25px;
+  padding: 40px 0;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.gerente-menu-item {
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-left: 5px solid #8B1E3F;
+}
+
+.gerente-menu-item:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 30px rgba(139, 30, 63, 0.2);
+}
+
+.gerente-menu-item h3 {
+  font-size: 22px;
+  color: #8B1E3F;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gerente-menu-item p {
+  color: #666;
+  font-size: 16px;
+  margin-bottom: 15px;
+  line-height: 1.5;
+}
+
+.gerente-menu-item button {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* ==================================== */
+/* 5. PRODUTOS (Listagem)               */
+/* ==================================== */
+
+.produtos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 25px;
+  padding: 30px 0;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.produto {
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 0;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  text-align: center;
+}
+
+.produto:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 12px 30px rgba(139, 30, 63, 0.2);
+}
+
+.produto img {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  background-color: #f0f0f0;
+}
+
+.produto p {
+  padding: 15px 15px;
+  margin: 0;
+  font-size: 16px;
+}
+
+.nome-prod {
+  font-weight: 600;
+  color: #333;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preco-prod {
+  color: #8B1E3F;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 10px 0;
+}
+
+.produto button {
+  width: 90%;
+  margin-bottom: 15px;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ==================================== */
+/* 6. ÍCONE DE PERFIL                   */
+/* ==================================== */
+
+.perfil-icon {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffcc00;
+  font-weight: bold;
+  font-size: 24px;
+  cursor: pointer;
+  border: 2px solid #ffcc00;
+}
+
+.perfil-icon:hover {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+/* ==================================== */
+/* 7. ESTILOS RESPONSIVOS               */
+/* ==================================== */
+
+@media (max-width: 768px) {
+  .top-bar {
+    flex-direction: column;
+    gap: 15px;
+    padding: 15px;
+    text-align: center;
+  }
+
+  .top-bar h1 {
+    font-size: 22px;
+  }
+
+  .top-right-buttons {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .aba-container {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .aba-btn {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+
+  .gerente-nav {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 20px 0;
+  }
+
+  .gerente-menu-item {
+    padding: 20px;
+  }
+
+  .gerente-menu-item h3 {
+    font-size: 18px;
+  }
+
+  .produtos {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 15px;
+    padding: 20px 0;
+  }
+
+  .produto img {
+    height: 180px;
+  }
+}
+
+@media (max-width: 480px) {
+  .top-bar h1 {
+    font-size: 18px;
+  }
+
+  .top-right-buttons button {
+    font-size: 14px;
+    padding: 10px 15px;
+  }
+
+  .gerente-menu-item {
+    padding: 15px;
+  }
+
+  .gerente-menu-item h3 {
+    font-size: 16px;
+  }
+
+  .gerente-menu-item p {
+    font-size: 14px;
+  }
+}
