@@ -12,14 +12,9 @@
 <header class="top-bar">
   <h1>👑 Menu Gerente</h1>
   <div class="top-right-buttons" id="user-area">
-  <button onclick="irParaCarrinho()">Ver Carrinho 🛒</button>
-  <div id="gerente-icon-area" style="display:inline-block; position:relative;">
-    <span id="gerente-icon" title="Perfil Gerente" style="cursor:pointer; font-size:28px; margin-left:10px; color:#8B1E3F;">👑</span>
-    <div id="gerente-dropdown" style="display:none; position:absolute; top:40px; right:0; background:#fff; border:1px solid #ccc; border-radius:6px; box-shadow:0 4px 12px rgba(0,0,0,0.12); min-width:120px; z-index:1000;">
-      <button style="background:none; border:none; color:#333; padding:12px; cursor:pointer; width:100%; text-align:left; font-size:14px; font-weight:500;" onclick="event.stopPropagation(); logout();">Sair</button>
-    </div>
+    <button onclick="irParaCarrinho()">Ver Carrinho 🛒</button>
+    <button onclick="logout()">Sair</button>
   </div>
- </div>
 </header>
 
 <main id="home">
@@ -79,7 +74,7 @@
 </main>
 
 <script src="../context-helper.js"></script>
-<script src="menu.js"></script>
+<script src="menu.js"></script> <!-- Certifique-se de que o caminho está correto -->
 
 </body>
 </html>

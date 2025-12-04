@@ -1,4 +1,3 @@
-
 const express = require('express');
 const app = express();
 const cookieParser = require('cookie-parser');
@@ -14,10 +13,12 @@ app.use(express.static(path.join(__dirname, '../')));
 app.use('/imgs', express.static(path.join(__dirname, '../imgs')));
 app.use('/css', express.static(path.join(__dirname, '../')));
 
+// Servir arquivos estáticos para o frontend do cliente
 const caminhoFrontend = path.join(__dirname, '../frontend');
 console.log('Caminho frontend:', caminhoFrontend);
 app.use(express.static(caminhoFrontend));
 
+// Servir arquivos estáticos para o frontend do gerente
 const caminhoFrontendGerente = path.join(__dirname, '../frontend-Gerente');
 console.log('Caminho frontend-Gerente:', caminhoFrontendGerente);
 app.use('/frontend-Gerente', express.static(caminhoFrontendGerente));

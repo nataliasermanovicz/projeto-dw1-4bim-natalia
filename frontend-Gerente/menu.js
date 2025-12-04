@@ -33,7 +33,7 @@ function abrirAba(novaAba, btnEl) {
     abaEscolhida.classList.add('aba-ativa-conteudo');
   }
 
-  // Marcar botão como ativo (recebe elemento via onclick="abrirAba(..., this)")
+  // Marcar botão como ativo
   try {
     if (btnEl && btnEl.classList) {
       btnEl.classList.add('aba-ativa');
@@ -57,9 +57,11 @@ function abrirAba(novaAba, btnEl) {
  */
 async function carregarProdutos() {
   try {
-    console.log('[menu-gerente] carregarProdutos: iniciando fetch');
-    const res = await fetch(`${HOST_BACKEND}/produto`);
-    const produtos = await res.json();
+    const response = await fetch(`${HOST_BACKEND}/produto`); 
+    if (!response.ok) {
+      throw new Error('Erro ao carregar produtos');
+    }
+    const produtos = await response.json();
     console.log('[menu-gerente] carregarProdutos: produtos recebidos, quantidade=', Array.isArray(produtos) ? produtos.length : 0);
     const lista = document.getElementById('produtos-lista');
 
@@ -114,10 +116,10 @@ function gerenciarEstadoLogin() {
     return;
   }
 
-  // Remover botão de login (se existir) — será recriado conforme perfil
+  // Remover botão de login (se existir)
   if (loginButton) loginButton.remove();
 
-  // Criar botão de Pedidos (opcional para gerentes/usuários logados)
+  // Criar botão de Pedidos
   const pedidosButton = document.createElement('button');
   pedidosButton.id = 'pedidosButton';
   pedidosButton.textContent = 'Meus Pedidos';
@@ -135,7 +137,8 @@ function gerenciarEstadoLogin() {
     }
   };
   userArea.appendChild(pedidosButton);
-  // Cria o ícone de perfil adequado: coroa para gerentes, ícone padrão para outros
+
+  // Cria o ícone de perfil adequado
   const perfilIcon = document.createElement('div');
   perfilIcon.className = 'perfil-icon';
   if (ehGerente === 'true') {
@@ -157,13 +160,11 @@ function gerenciarEstadoLogin() {
 
   perfilIcon.appendChild(menuPerfil);
 
-  // Lógica para mostrar/esconder o menu ao clicar no ícone
   perfilIcon.onclick = function (e) {
     e.stopPropagation();
     menuPerfil.style.display = menuPerfil.style.display === 'none' ? 'block' : 'none';
   };
 
-  // Esconder o menu se clicar em qualquer lugar fora dele
   document.addEventListener('click', function (e) {
     if (!perfilIcon.contains(e.target)) {
       menuPerfil.style.display = 'none';
@@ -176,18 +177,19 @@ function gerenciarEstadoLogin() {
 }
 
 /**
- * Função de logout para gerentes
+ * Função de logout: Limpa os dados do usuário e redireciona para o menu principal.
  */
 function logout() {
-  // Limpeza local
+  console.log("Logout acionado");
+  // Limpar dados do usuário armazenados no localStorage
   localStorage.removeItem('usuarioLogado');
   localStorage.removeItem('perfilUsuario');
+  localStorage.removeItem('usuarioEmail');
   localStorage.removeItem('clienteIdPessoa');
   localStorage.removeItem('ehGerente');
-  localStorage.removeItem('carrinho');
 
-  // Redireciona para o menu inicial público
-  window.location.href = '../menu.html';
+  // Redirecionar para o menu principal
+  window.location.href = `${HOST_BACKEND}/menu`;
 }
 
 // =======================================================
@@ -201,14 +203,15 @@ window.addEventListener('DOMContentLoaded', () => {
   const usuarioLogado = localStorage.getItem('usuarioLogado');
 
   if (usuarioLogado !== 'true' || ehGerente !== 'true') {
-    // Se não é gerente ou não está logado, redireciona para menu normal
-    window.location.href = `${HOST_BACKEND}/menu`;
+    // CORRIGIDO: Redireciona para o HTML correto caso tente acessar sem permissão
+    // (Anteriormente estava apontando para o Backend)
+    window.location.href = '../frontend/menu.html';
     return;
   }
 
-  gerenciarEstadoLogin(); // Verifica e atualiza o estado de Login/Perfil com COROA
+  gerenciarEstadoLogin(); 
 
-  // Lógica do ícone de gerente fixo no HTML
+  // Lógica do ícone de gerente fixo no HTML (se existir)
   const gerenteIcon = document.getElementById('gerente-icon');
   const gerenteDropdown = document.getElementById('gerente-dropdown');
   if (gerenteIcon && gerenteDropdown) {
@@ -217,7 +220,6 @@ window.addEventListener('DOMContentLoaded', () => {
       gerenteDropdown.style.display = gerenteDropdown.style.display === 'none' ? 'block' : 'none';
     };
     
-    // Evitar que cliques dentro do dropdown fechem ele
     gerenteDropdown.addEventListener('click', function(e) {
       e.stopPropagation();
     });

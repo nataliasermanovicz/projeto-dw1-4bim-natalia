@@ -19,8 +19,11 @@ function formatPrice(value) {
 
 async function carregarProdutos() {
   try {
-    const res = await fetch(`${HOST_BACKEND}/produto`);
-    const produtos = await res.json();
+    const response = await fetch(`${HOST_BACKEND}/produto`); // Certifique-se de que o caminho está correto
+    if (!response.ok) {
+      throw new Error('Erro ao carregar produtos');
+    }
+    const produtos = await response.json();
     const lista = document.getElementById('produtos-lista');
     
     // Limpa a lista antes de adicionar os novos produtos
