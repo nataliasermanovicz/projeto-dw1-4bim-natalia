@@ -12,7 +12,7 @@ window.carrinhoVazio = true;
 async function mostrarCarrinho() {
     let carrinhoRaw = JSON.parse(localStorage.getItem('carrinho')) || [];
 
-    // Normaliza itens do carrinho aceitando chaves variadas (idProduto/idproduto/id, quantidade, preco etc.)
+    // Normaliza itens do carrinho aceitando chaves variadas
     function normalizeItem(item) {
         if (!item) return null;
         const id = item.idproduto || item.idProduto || item.id || item.produtoidproduto || null;
@@ -274,15 +274,13 @@ async function concluirCompra() {
             return;
         }
 
-        // Recupera o CPF do usuário logado ou usa um fallback (Cuidado com FK no banco)
-        // Se estiver vazio, usei '99999999999' que existe no seu script SQL de exemplo
         const cpfClienteLogado = localStorage.getItem('cpfUsuarioLogado') || '99999999999';
 
         // 1. Montar objeto do Pedido
         const dadosDoPedido = {
             datadopedido: new Date().toISOString().split('T')[0], // YYYY-MM-DD
             clientepessoacpfpessoa: cpfClienteLogado,
-            funcionariopessoacpfpessoa: '11111111111' // Funcionário fixo conforme seu exemplo
+            funcionariopessoacpfpessoa: '11111111111' 
         };
 
         // 2. Enviar Pedido e aguardar ID
@@ -295,13 +293,12 @@ async function concluirCompra() {
         const idPedido = pedidoCriado.idpedido;
         console.log("Pedido criado com ID:", idPedido);
 
-        // 3. Enviar cada item do carrinho para o banco (PedidoHasProduto)
+        // 3. Enviar cada item do carrinho para o banco
         for (const item of carrinho) {
-            // Monta o objeto conforme as colunas da tabela PedidoHasProduto
             const dadosItem = {
                 produtoidproduto: item.idproduto,
                 pedidoidpedido: idPedido,
-                quantidade: item.quantidadeEmEstoque, // No seu carrinho, 'quantidadeEmEstoque' é a qtd comprada
+                quantidade: item.quantidadeEmEstoque,
                 precounitario: item.precoUnitario
             };
 
@@ -330,9 +327,50 @@ async function concluirCompra() {
     }
 }
 
+// =======================================================
+// === FUNÇÕES DE NAVEGAÇÃO E UTILITÁRIOS ===
+// =======================================================
+
 // Função auxiliar para login
 function irParaLogin() {
     window.location.href = `${HOST_BACKEND}/login/abrirTelaLogin`;
+}
+
+/**
+ * Função responsável por voltar ao menu correto.
+ * Verifica se o usuário é Gerente para definir a rota.
+ */
+/**
+/**
+ * Função responsável por voltar ao menu correto.
+ */
+function irParaMenu() {
+    // 1. Pega o valor
+    let ehGerente = localStorage.getItem('ehGerente');
+    
+    console.log("--- DEBUG REAL ---");
+    console.log("Valor cru:", ehGerente);
+
+    // 2. Limpeza de segurança (remove espaços e converte para string)
+    if (ehGerente) {
+        ehGerente = String(ehGerente).trim();
+    }
+
+    // 3. Verificação
+    if (ehGerente === 'true') {
+        console.log("É GERENTE! Tentando ir para ../../frontend-Gerente/menu.html");
+        
+        // Verifica se a estrutura de pastas está correta
+        // Se carrinho.html está em: projeto/frontend/carrinho/
+        // ../ volta para frontend/
+        // ../../ volta para projeto/
+        // então entra em frontend-Gerente/
+        window.location.href = '../../frontend-Gerente/menu.html';
+        
+    } else {
+        console.log("É CLIENTE (ou nulo). Voltando para ../menu.html");
+        window.location.href = '../menu.html';
+    }
 }
 
 // Inicialização da página

@@ -1,5 +1,3 @@
-// REMOVIDO: const HOST_BACKEND = ... (Já está no context-helper.js)
-
 // =======================================================
 // === FUNÇÕES AUXILIARES ===
 // =======================================================
@@ -117,7 +115,8 @@ window.irParaProduto = function(id) {
  */
 function logout() {
   localStorage.clear();
-  window.location.href = '../menu.html';
+  // CORREÇÃO: Usa a URL do backend + rota /menu
+  window.location.href = `${HOST_BACKEND}/menu`;
 }
 window.logout = logout; // Expondo globalmente para usar no HTML se precisar
 
@@ -144,7 +143,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (usuarioLogado !== 'true' || ehGerente !== 'true') {
     alert("Acesso negado. Redirecionando...");
-    window.location.href = '../menu.html';
+    // Tenta redirecionar para o menu principal via backend se falhar a segurança
+    window.location.href = `${HOST_BACKEND}/menu`;
     return;
   }
 

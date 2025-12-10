@@ -54,9 +54,35 @@
     <h2 style="margin-top: 60px; font-size: 2rem; color: #8B1E3F; font-weight: 600;">✅ Compra finalizada com sucesso!</h2>
   </section>
 
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
-  <script src="../context-helper.js"></script>
-  <script src="carrinho.js"></script>
-  
+ <script src="../context-helper.js"></script>
+<script src="carrinho.js?v=final3"></script> 
+
+<script>
+  // Sobrescreve a função irParaMenu para garantir a navegação correta
+  window.irParaMenu = function() {
+    
+    // 1. Verifica se é gerente
+    const ehGerente = localStorage.getItem('ehGerente');
+    console.log("Verificando usuário. É gerente?", ehGerente);
+
+    if (ehGerente && String(ehGerente).trim() === 'true') {
+        // --- CAMINHO DO GERENTE (Arquivo Físico) ---
+        // Sai de 'carrinho', sai de 'frontend', entra em 'frontend-Gerente'
+        console.log("Redirecionando para Menu Gerente (Estático)");
+        window.location.href = '../../frontend-Gerente/menu.html';
+    } else {
+        // --- CAMINHO DO CLIENTE (Rota do Backend) ---
+        // Volta para o menu padrão que passa pelo controller
+        console.log("Redirecionando para Menu Cliente (Rota)");
+        // Se você usa o context-helper, pode usar a variável HOST_BACKEND
+        if (typeof HOST_BACKEND !== 'undefined') {
+            window.location.href = `${HOST_BACKEND}/menu`; 
+        } else {
+            window.location.href = '../menu.html';
+        }
+    }
+  };
+</script>
+
 </body>
 </html>
