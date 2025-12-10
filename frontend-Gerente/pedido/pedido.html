@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CRUD - Pedido</title>
-    <link rel="stylesheet" href="./pesquisaDinamicaStyle.css">
-    <link rel="stylesheet" href="./pedido.css">
+    <link rel="stylesheet" href="/frontend-Gerente/pedido/pedido.css">
+    <link rel="stylesheet" href="/frontend-Gerente/css/menu.css">
 </head>
 
 <body>
@@ -24,10 +23,8 @@
                     <div class="search-input-group">
                         <input type="number" id="searchId" placeholder="Digite o ID para buscar">
                         <button type="button" id="btnBuscar">🔍 Buscar</button>
-
                         <button type="button" id="btnIncluir" class="btn-primary">Incluir</button>
-                        <button type="button" id="btnAlterar" class="btn-secondary"
-                            style="display: none;">Alterar</button>
+                        <button type="button" id="btnAlterar" class="btn-secondary" style="display: none;">Alterar</button>
                         <button type="button" id="btnExcluir" class="btn-danger" style="display: none;">Excluir</button>
                         <button type="button" id="btnSalvar" class="btn-save" style="display: none;">Salvar</button>
                         <button type="button" id="btnCancelar" class="btn-cancel">Cancelar</button>
@@ -36,38 +33,33 @@
 
                 <fieldset id="formFields">
                     <legend>Dados do Pedido</legend>
-
                     <div class="form-group">
-                        <!-- <label for="data_pedido">Data do pedido:</label> -->
+                        <label for="data_pedido">Data do pedido:</label>
                         <input type="date" id="data_pedido" name="data_pedido" required>
 
-                        <!-- combobox -->
-                        <!-- <label for="clientepessoacpfpessoa">Cliente:</label>
-                        <input type="number" id="clientepessoacpfpessoa" name="clientepessoacpfpessoa" required> -->
-
                         <div class="search-bar-container">
-                            <select id="searchType" class="search-select">
-                                <option value="cpf">CPF</option>
-                                <option value="nome">Nome</option>
-                            </select>
-                            <input type="text" id="clientepessoacpfpessoa" name="clientepessoacpfpessoa"
-                                placeholder="CPF cliente..." onfocus="buscaDinamica()">
+                            <label>Cliente (CPF):</label>
+                            <div style="display: flex; gap: 5px;">
+                                <select id="searchType" class="search-select">
+                                    <option value="cpf">CPF</option>
+                                    <option value="nome">Nome</option>
+                                </select>
+                                <input type="text" id="cliente_pessoa_cpf_pessoa" name="cliente_pessoa_cpf_pessoa"
+                                    placeholder="CPF cliente..." onfocus="buscaDinamica()">
+                            </div>
                             <ul id="resultsList" class="results-list"></ul>
                         </div>
-                        <!-- <label for="funcionario_pessoa_cpf_pessoa">Funcionário:</label> -->
+                        
+                        <label for="funcionario_pessoa_cpf_pessoa">Funcionário (CPF):</label>
                         <input type="number" id="funcionario_pessoa_cpf_pessoa" name="funcionario_pessoa_cpf_pessoa"
                             placeholder="CPF funcionário..." required>
-                    </div>
-
-
                     </div>
                 </fieldset>
             </form>
 
-
-
             <div class="itensDoPedido">
-                <div>Itens do Pedido
+                <h3>Itens do Pedido</h3>
+                <div>
                     <button type="button" id="btnAdicionarItem" onclick="adicionarItem()"
                         class="btn-secondary btn-small"><i class="fas fa-box-open"></i> Adicionar Item</button>
                 </div>
@@ -76,22 +68,38 @@
                         <thead>
                             <tr>
                                 <th>ID Pedido</th>
-                                <th>ID</th>
+                                <th>ID Prod.</th>
                                 <th>Produto</th>
-                                <th>Quantidade</th>
-                                <th>Preço Unitário</th>
+                                <th>Qtd</th>
+                                <th>Preço Unit.</th>
                                 <th>Subtotal</th>
-                                <th>Salvar</th>
-                                <th>Excluir</th>
+                                <th>Ações</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody id="itensTableBody">
-                            <!-- Itens serão carregados dinamicamente -->
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
+            </div>
+        </section>
 
-
+        <section class="list-section">
+            <h2>Lista de Pedidos</h2>
+            <div class="table-container">
+                <table id="pedidosTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Data</th>
+                            <th>CPF Cliente</th>
+                            <th>CPF Funcionário</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pedidosTableBody">
+                        </tbody>
+                </table>
+            </div>
         </section>
 
     </main>
@@ -101,9 +109,8 @@
     </footer>
 
     <div id="messageContainer" class="message-container"></div>
-    <script src="./pesquisaDinamicaCliente.js"></script>
-    <script src="./pedido.js" defer></script>
+    <script src="/frontend-Gerente/pedido/pedido.js"></script>
+    <script src="/frontend-Gerente/pedido/pesquisaDinamicaCliente.js"></script>
 
 </body>
-
 </html>

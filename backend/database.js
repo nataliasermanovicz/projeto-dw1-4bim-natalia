@@ -10,7 +10,7 @@ const dbConfig = {
 
 
   user: 'postgres',
-  password: 'postgres',
+  password: 'sermanovicz09',
   database: 'dw4bim',
 
   ssl: false,

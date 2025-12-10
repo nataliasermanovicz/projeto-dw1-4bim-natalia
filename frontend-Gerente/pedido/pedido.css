@@ -334,3 +334,15 @@ footer {
     .itensDoPedido { flex-direction: column; gap: 10px; text-align: center; }
     .table-container { overflow-x: auto; }
 }
+/* Estilo para o botão de ID na tabela */
+.btn-id {
+    background-color: #6c757d; /* Um cinza profissional (igual ao botão Cancelar) */
+    padding: 0.4rem 0.8rem;    /* Menor que os botões normais para caber na tabela */
+    font-size: 0.9rem;         /* Letra um pouco menor */
+    min-width: auto;           /* Remove a largura mínima de 100px dos botões gerais */
+}
+
+.btn-id:hover {
+    background-color: #5a6268; /* Cinza mais escuro ao passar o mouse */
+    transform: translateY(-2px);
+}
