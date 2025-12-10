@@ -7,8 +7,7 @@ const PagamentoHasFormaPagamentoController = require('../controllers/PagamentoHa
 // =====================================
 
 // Abre o CRUD (envia o HTML da tela)
-router.get(
-  '/abrirCrudPagamentoHasFormaPagamento',
+router.get('/tela-edicao',
   PagamentoHasFormaPagamentoController.abrirCrudPagamentoHasFormaPagamento
 );
 

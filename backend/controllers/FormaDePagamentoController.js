@@ -6,7 +6,7 @@ const path = require('path');
 
 exports.abrirCrudFormaDePagamento = (req, res) => {
 //  console.log('formadepagamentoController - Rota /abrirCrudFormaDePagamento - abrir o crudFormaDePagamento');
-  res.sendFile(path.join(__dirname, '../../html/formadepagamento/formadepagamento.html'));
+  res.sendFile(path.join(__dirname, '../../frontend-Gerente/forma_pagamento/forma_pagamento.html'));
 } 
 
 exports.listarFormaDePagamento = async (req, res) => {

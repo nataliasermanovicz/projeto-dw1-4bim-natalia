@@ -12,19 +12,17 @@
 <header class="top-bar">
   <h1>👑 Menu Gerente</h1>
   <div class="top-right-buttons" id="user-area">
-    <button onclick="irParaCarrinho()">Ver Carrinho 🛒</button>
-    <button onclick="logout()">Sair</button>
+    <button id="btn-carrinho">Ver Carrinho 🛒</button>
+    <button id="btn-logout-top">Sair</button>
   </div>
 </header>
 
 <main id="home">
-  <!-- Abas de Navegação -->
   <div class="aba-container">
-    <button class="aba-btn aba-ativa" onclick="abrirAba('gerenciamento', this)">⚙️ Gerenciamento</button>
-    <button class="aba-btn" onclick="abrirAba('produtos', this)">📦 Produtos</button>
+    <button id="btn-gerenciamento" class="aba-btn aba-ativa">⚙️ Gerenciamento</button>
+    <button id="btn-produtos" class="aba-btn">📦 Produtos</button>
   </div>
 
-  <!-- Aba de Gerenciamento -->
   <div id="gerenciamento" class="aba-conteudo aba-ativa-conteudo">
     <nav class="gerente-nav">
       <div class="gerente-menu-item">
@@ -48,7 +46,7 @@
       <div class="gerente-menu-item">
         <h3>💳 Pagamentos</h3>
         <p>Controlar pagamentos recebidos</p>
-        <button onclick="window.location.href='../forma_pagamento/forma_pagamento.html'">Ver Pagamentos</button>
+        <button onclick="window.location.href='/forma_pagamento/tela-edicao'">Ver Pagamentos</button>
       </div>
 
       <div class="gerente-menu-item">
@@ -59,7 +57,6 @@
     </nav>
   </div>
 
-  <!-- Aba de Produtos (igual ao cliente) -->
   <div id="produtos" class="aba-conteudo">
     <section class="produtos" id="produtos-lista">
       <p>Carregando produtos...</p>
@@ -68,7 +65,7 @@
 </main>
 
 <script src="../context-helper.js"></script>
-<script src="menu.js"></script> <!-- Certifique-se de que o caminho está correto -->
+<script src="menu.js"></script> 
 
 </body>
 </html>

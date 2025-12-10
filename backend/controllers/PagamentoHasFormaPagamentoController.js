@@ -6,7 +6,7 @@ const path = require('path');
 
 exports.abrirCrudPagamentoHasFormaPagamento = (req, res) => {
   console.log('pagamentoHasFormaPagamento - Rota /abrirCrudPagamentoHasFormaPagamento');
-  res.sendFile(path.join(__dirname, '../../html/pagamentoHasFormaPagamento/pagamentoHasFormaPagamento.html'));
+  res.sendFile(path.join(__dirname, '../../frontend-Gerente/pagamento_has_forma_pagamento/pagamento_has_forma_pagamento.html'));
 }
 
  

@@ -1,7 +1,9 @@
-// A URL do seu backend
-const HOST_BACKEND = 'http://localhost:3001';
+// REMOVIDO: const HOST_BACKEND = ... (Já está no context-helper.js)
 
-// Helper: busca campo com variações de nome
+// =======================================================
+// === FUNÇÕES AUXILIARES ===
+// =======================================================
+
 function getField(obj, fields) {
   for (const f of fields) {
     if (obj[f] !== undefined) return obj[f];
@@ -14,224 +16,172 @@ function formatPrice(value) {
   return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+// =======================================================
+// === LÓGICA DE NAVEGAÇÃO E PRODUTOS ===
+// =======================================================
+
 /**
- * Função para gerenciar abas (Gerenciamento vs Produtos)
+ * Troca as abas e carrega produtos se necessário
  */
-function abrirAba(novaAba, btnEl) {
-  console.log('[menu-gerente] abrirAba chamado:', novaAba, btnEl);
-  // Ocultar todas as abas
-  const abas = document.querySelectorAll('.aba-conteudo');
-  abas.forEach(aba => aba.classList.remove('aba-ativa-conteudo'));
+function trocarAba(abaDestino) {
+  console.log('Trocando para aba:', abaDestino);
 
-  // Remover classe ativa dos botões
-  const btns = document.querySelectorAll('.aba-btn');
-  btns.forEach(btn => btn.classList.remove('aba-ativa'));
+  // 1. Esconde todos os conteúdos
+  document.querySelectorAll('.aba-conteudo').forEach(el => {
+    el.classList.remove('aba-ativa-conteudo');
+  });
 
-  // Mostrar aba selecionada
-  const abaEscolhida = document.getElementById(novaAba);
-  if (abaEscolhida) {
-    abaEscolhida.classList.add('aba-ativa-conteudo');
+  // 2. Remove destaque de todos os botões
+  document.querySelectorAll('.aba-btn').forEach(btn => {
+    btn.classList.remove('aba-ativa');
+  });
+
+  // 3. Mostra o conteúdo certo
+  const divDestino = document.getElementById(abaDestino);
+  if (divDestino) {
+    divDestino.classList.add('aba-ativa-conteudo');
   }
 
-  // Marcar botão como ativo
-  try {
-    if (btnEl && btnEl.classList) {
-      btnEl.classList.add('aba-ativa');
-    } else {
-      // fallback: marca primeiro botão que corresponde ao nome da aba
-      const fallback = Array.from(document.querySelectorAll('.aba-btn')).find(b => b.textContent.toLowerCase().includes(novaAba));
-      if (fallback) fallback.classList.add('aba-ativa');
-    }
-  } catch (e) {
-    console.warn('Não foi possível marcar botão ativo', e);
+  // 4. Destaca o botão certo
+  const btnId = abaDestino === 'gerenciamento' ? 'btn-gerenciamento' : 'btn-produtos';
+  const btnDestino = document.getElementById(btnId);
+  if (btnDestino) {
+    btnDestino.classList.add('aba-ativa');
   }
 
-  // Se for aba de produtos, carregar produtos
-  if (novaAba === 'produtos') {
+  // 5. Se for produtos, carrega a lista
+  if (abaDestino === 'produtos') {
     carregarProdutos();
   }
 }
 
 /**
- * Função assíncrona para carregar a lista de produtos da API e renderizar na tela.
+ * Busca produtos no backend
  */
 async function carregarProdutos() {
-  try {
-    const response = await fetch(`${HOST_BACKEND}/produto`); 
-    if (!response.ok) {
-      throw new Error('Erro ao carregar produtos');
-    }
-    const produtos = await response.json();
-    console.log('[menu-gerente] carregarProdutos: produtos recebidos, quantidade=', Array.isArray(produtos) ? produtos.length : 0);
-    const lista = document.getElementById('produtos-lista');
+  const lista = document.getElementById('produtos-lista');
+  if (!lista) return;
 
-    if (!lista) {
-      console.warn('[menu-gerente] carregarProdutos: elemento #produtos-lista não encontrado no DOM');
+  try {
+    lista.innerHTML = '<p>Buscando produtos...</p>';
+    
+    // O HOST_BACKEND vem do context-helper.js
+    const response = await fetch(`${HOST_BACKEND}/produto`); 
+    if (!response.ok) throw new Error('Falha ao buscar produtos');
+    
+    const produtos = await response.json();
+    
+    if (!Array.isArray(produtos) || produtos.length === 0) {
+      lista.innerHTML = '<p>Nenhum produto encontrado.</p>';
       return;
     }
 
-    // Limpa a lista antes de adicionar os novos produtos
-    lista.innerHTML = '';
+    lista.innerHTML = ''; // Limpa msg de carregando
 
-    (Array.isArray(produtos) ? produtos : []).forEach(prod => {
+    produtos.forEach(prod => {
       const article = document.createElement('article');
       article.className = 'produto';
 
-      // Caminho da imagem
-      let oSrc = prod && prod.imagemproduto ? `../${prod.imagemproduto}` : '../imgs/placeholder.png';
-
-      // Preço: tenta várias chaves possíveis
-      const precoVal = getField(prod, ['precoUnitario', 'precounitario', 'preco', 'price']) || 0;
-      const precoStr = formatPrice(precoVal);
-
+      let oSrc = prod.imagemproduto ? `../${prod.imagemproduto}` : '../imgs/placeholder.png';
+      const precoVal = getField(prod, ['precoUnitario', 'precounitario', 'preco', 'price']);
       const nome = getField(prod, ['nomeProduto', 'nomeproduto', 'nome']) || 'Produto';
-      const id = getField(prod, ['idProduto', 'idproduto', 'id']) || '';
+      const id = getField(prod, ['idProduto', 'idproduto', 'id']);
 
+      // Nota: onclick aqui precisa chamar uma função global ou window
       article.innerHTML = `
         <img src="${oSrc}" alt="${nome}">
         <p class="nome-prod">${nome}</p>
-        <p class="preco-prod">${precoStr}</p>
-        <button onclick="irParaProduto(${id})">Ver mais</button>
+        <p class="preco-prod">${formatPrice(precoVal)}</p>
+        <button onclick="window.irParaProduto(${id})">Ver mais</button>
       `;
       lista.appendChild(article);
     });
+
   } catch (error) {
-    console.error('Erro ao carregar produtos:', error);
-    const lista = document.getElementById('produtos-lista');
-    if (lista) lista.innerHTML = '<p>Não foi possível carregar os produtos. Verifique a conexão com o backend.</p>';
+    console.error(error);
+    lista.innerHTML = '<p style="color:red">Erro ao conectar com o servidor.</p>';
   }
 }
 
 /**
- * Função que gerencia o ícone de Perfil vs. Botão de Login para GERENTES.
+ * Redireciona para detalhes (precisa estar no window pois é chamado via string HTML)
  */
-function gerenciarEstadoLogin() {
-  const usuarioLogado = localStorage.getItem('usuarioLogado');
-  const ehGerente = localStorage.getItem('ehGerente');
-  const userArea = document.getElementById('user-area');
-  const loginButton = document.getElementById('loginButton');
-
-  // Se não está logado, mostrar apenas botão de login
-  if (usuarioLogado !== 'true') {
-    return;
-  }
-
-  // Remover botão de login (se existir)
-  if (loginButton) loginButton.remove();
-
-  // Criar botão de Pedidos
-  const pedidosButton = document.createElement('button');
-  pedidosButton.id = 'pedidosButton';
-  pedidosButton.textContent = 'Meus Pedidos';
-  pedidosButton.style.backgroundColor = '#FFD700';
-  pedidosButton.style.color = '#333';
-  pedidosButton.style.border = 'none';
-  pedidosButton.style.padding = '12px 20px';
-  pedidosButton.style.borderRadius = '6px';
-  pedidosButton.style.cursor = 'pointer';
-  pedidosButton.onclick = function () {
-    if (typeof irParaPedidos === 'function') {
-      irParaPedidos();
-    } else {
-      window.location.href = '../frontend/carrinho/registroPedidos.html';
-    }
-  };
-  userArea.appendChild(pedidosButton);
-
-  // Cria o ícone de perfil adequado
-  const perfilIcon = document.createElement('div');
-  perfilIcon.className = 'perfil-icon';
-  if (ehGerente === 'true') {
-    perfilIcon.textContent = '👑';
-    perfilIcon.title = 'Perfil (Gerente)';
-    perfilIcon.style.cssText = 'position: relative; cursor: pointer; width: 45px; height: 45px; border-radius: 50%; background-color: #FFD700; display: inline-flex; align-items: center; justify-content: center; color: #8B1E3F; font-weight: bold; font-size: 24px; margin-left: 10px; border: 2px solid #8B1E3F;';
-  } else {
-    perfilIcon.textContent = '👤';
-    perfilIcon.title = 'Perfil';
-    perfilIcon.style.cssText = 'position: relative; cursor: pointer; width: 45px; height: 45px; border-radius: 50%; background-color: #8B1E3F; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 18px; margin-left: 10px; border: 2px solid #6e1530;';
-  }
-
-  // Criar o Menu dropdown de Perfil
-  const menuPerfil = document.createElement('div');
-  menuPerfil.style.cssText = 'display: none; position: absolute; top: 50px; right: 0; background-color: #fff; border: 1px solid #ccc; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); z-index: 1000; min-width: 140px;';
-  menuPerfil.innerHTML = `
-    <button style="background: none; border: none; color: #333; padding: 12px; cursor: pointer; width: 100%; text-align: left; font-size: 14px; font-weight: 500;" onclick="logout()">Sair</button>
-  `;
-
-  perfilIcon.appendChild(menuPerfil);
-
-  perfilIcon.onclick = function (e) {
-    e.stopPropagation();
-    menuPerfil.style.display = menuPerfil.style.display === 'none' ? 'block' : 'none';
-  };
-
-  document.addEventListener('click', function (e) {
-    if (!perfilIcon.contains(e.target)) {
-      menuPerfil.style.display = 'none';
-    }
-  });
-
-  if (userArea) {
-    userArea.appendChild(perfilIcon);
-  }
-}
+window.irParaProduto = function(id) {
+  if(!id) return;
+  // Ajuste o caminho conforme necessário
+  window.location.href = `../produto/produto.html?id=${id}`;
+};
 
 /**
- * Função de logout: Limpa os dados do usuário e redireciona para o menu principal.
+ * Faz Logout
  */
 function logout() {
-  console.log("Logout acionado");
-  // Limpar dados do usuário armazenados no localStorage
-  localStorage.removeItem('usuarioLogado');
-  localStorage.removeItem('perfilUsuario');
-  localStorage.removeItem('usuarioEmail');
-  localStorage.removeItem('clienteIdPessoa');
-  localStorage.removeItem('ehGerente');
-
-  // Redirecionar para o menu principal
-  window.location.href = `${HOST_BACKEND}/menu`;
+  localStorage.clear();
+  window.location.href = '../menu.html';
 }
+window.logout = logout; // Expondo globalmente para usar no HTML se precisar
+
+/**
+ * Botão Ver Carrinho
+ */
+function irParaCarrinho() {
+    // Se tiver a função global definida em outro arquivo, usa ela, senão redireciona
+    window.location.href = '../carrinho/carrinho.html'; 
+}
+window.irParaCarrinho = irParaCarrinho;
+
 
 // =======================================================
-// === INICIALIZAÇÃO DA PÁGINA ===
+// === INICIALIZAÇÃO (Quando a página carrega) ===
 // =======================================================
 
-// Quando o DOM estiver totalmente carregado:
-window.addEventListener('DOMContentLoaded', () => {
-  // Verifica se o usuário é gerente; caso contrário, redireciona
+document.addEventListener('DOMContentLoaded', () => {
+  console.log("DOM Carregado - Iniciando Menu Gerente");
+
+  // 1. Verificação de Segurança
   const ehGerente = localStorage.getItem('ehGerente');
   const usuarioLogado = localStorage.getItem('usuarioLogado');
 
   if (usuarioLogado !== 'true' || ehGerente !== 'true') {
-    // CORRIGIDO: Redireciona para o HTML correto caso tente acessar sem permissão
-    // (Anteriormente estava apontando para o Backend)
-    window.location.href = '../frontend/menu.html';
+    alert("Acesso negado. Redirecionando...");
+    window.location.href = '../menu.html';
     return;
   }
 
-  gerenciarEstadoLogin(); 
+  // 2. Configurar os botões das ABAS (Event Listeners)
+  const btnGerente = document.getElementById('btn-gerenciamento');
+  const btnProdutos = document.getElementById('btn-produtos');
 
-  // Lógica do ícone de gerente fixo no HTML (se existir)
-  const gerenteIcon = document.getElementById('gerente-icon');
-  const gerenteDropdown = document.getElementById('gerente-dropdown');
-  if (gerenteIcon && gerenteDropdown) {
-    gerenteIcon.onclick = function(e) {
-      e.stopPropagation();
-      gerenteDropdown.style.display = gerenteDropdown.style.display === 'none' ? 'block' : 'none';
-    };
-    
-    gerenteDropdown.addEventListener('click', function(e) {
-      e.stopPropagation();
-    });
-    
-    document.addEventListener('click', function(e) {
-      if (!gerenteIcon.contains(e.target) && !gerenteDropdown.contains(e.target)) {
-        gerenteDropdown.style.display = 'none';
-      }
-    });
+  if (btnGerente) {
+    btnGerente.addEventListener('click', () => trocarAba('gerenciamento'));
   }
+  if (btnProdutos) {
+    btnProdutos.addEventListener('click', () => trocarAba('produtos'));
+  }
+
+  // 3. Configurar botões do topo
+  const btnLogout = document.getElementById('btn-logout-top');
+  if (btnLogout) {
+      btnLogout.addEventListener('click', logout);
+  }
+  const btnCarrinho = document.getElementById('btn-carrinho');
+  if (btnCarrinho) {
+      btnCarrinho.addEventListener('click', irParaCarrinho);
+  }
+
+  // 4. Gerenciar ícone de login/perfil
+  gerenciarEstadoLogin();
 });
 
-// Expõe as funções globalmente
-window.logout = logout;
-window.abrirAba = abrirAba;
+function gerenciarEstadoLogin() {
+  const ehGerente = localStorage.getItem('ehGerente');
+  const userArea = document.getElementById('user-area');
+  
+  // Cria ícone visual
+  const perfilIcon = document.createElement('div');
+  perfilIcon.className = 'perfil-icon';
+  perfilIcon.textContent = ehGerente === 'true' ? '👑' : '👤';
+  perfilIcon.style.cssText = 'width: 40px; height: 40px; background: #FFD700; border-radius: 50%; display:flex; align-items:center; justify-content:center; cursor:pointer; margin-left:10px; font-size:20px; border: 2px solid #8B1E3F;';
+  
+  if(userArea) userArea.appendChild(perfilIcon);
+}
