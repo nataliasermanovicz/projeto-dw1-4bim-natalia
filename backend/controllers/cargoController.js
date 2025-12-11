@@ -26,18 +26,18 @@ exports.listarCargos = async (req, res) => {
 exports.criarCargo = async (req, res) => {
   //  console.log('Criando cargo com dados:', req.body);
   try {
-    const { idCargo, nomeCargo} = req.body;
+    const { idCargo, nomecargo} = req.body;
 
     // Validação básica
-    if (!nomeCargo) {
+    if (!nomecargo) {
       return res.status(400).json({
         error: 'Nome do cargo é obrigatório'
       });
     }
 
     const result = await query(
-      'INSERT INTO cargo (idCargo, nomeCargo) VALUES ($1, $2) RETURNING *',
-      [idCargo, nomeCargo]
+      'INSERT INTO cargo (idCargo, nomecargo) VALUES ($1, $2) RETURNING *',
+      [idCargo, nomecargo]
     );
 
     res.status(201).json(result.rows[0]);
@@ -83,7 +83,7 @@ exports.obterCargo = async (req, res) => {
 exports.atualizarCargo = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const { nomeCargo } = req.body;
+    const { nomecargo } = req.body;
 
    
     // Verifica se a cargo existe
@@ -99,13 +99,13 @@ exports.atualizarCargo = async (req, res) => {
     // Constrói a query de atualização dinamicamente para campos não nulos
     const currentPerson = existingPersonResult.rows[0];
     const updatedFields = {
-      nomeCargo: nomeCargo !== undefined ? nomeCargo : currentPerson.nomeCargo,
+      nomecargo: nomecargo !== undefined ? nomecargo : currentPerson.nomecargo,
     };
 
     // Atualiza a cargo
     const updateResult = await query(
-      'UPDATE cargo SET nomeCargo = $1 WHERE idCargo = $2 RETURNING *',
-      [updatedFields.nomeCargo, id]
+      'UPDATE cargo SET nomecargo = $1 WHERE idCargo = $2 RETURNING *',
+      [updatedFields.nomecargo, id]
     );
 
     res.json(updateResult.rows[0]);
