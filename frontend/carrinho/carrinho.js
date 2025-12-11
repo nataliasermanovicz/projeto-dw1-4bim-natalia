@@ -197,11 +197,35 @@ function formatarCartao(input) {
 // === FUNÇÕES DE COMUNICAÇÃO COM O BACKEND (API) ===
 // =======================================================
 
-// 1. Cria o Pedido (Cabeçalho)
+// // 1. Cria o Pedido (Cabeçalho)
+// async function enviarPedidoParaBackend(pedido) {
+//     try {
+//         let url = `${HOST_BACKEND}/pedido/criarProximoPedido`;
+//         console.log('Enviando pedido para:', url);
+
+//         const response = await fetch(url, {
+//             method: 'POST',
+//             headers: { 'Content-Type': 'application/json' },
+//             body: JSON.stringify(pedido)
+//         });
+
+//         if (!response.ok) {
+//             throw new Error('Erro ao criar pedido: ' + response.statusText);
+//         }
+
+//         const data = await response.json();
+//         return data; // Deve retornar objeto com { idpedido: ... }
+//     } catch (error) {
+//         console.error('Erro na requisição ao backend:', error);
+//         throw error;
+//     }
+// }
+
 async function enviarPedidoParaBackend(pedido) {
     try {
         let url = `${HOST_BACKEND}/pedido/criarProximoPedido`;
         console.log('Enviando pedido para:', url);
+        console.log('Dados do pedido enviado:', pedido);
 
         const response = await fetch(url, {
             method: 'POST',
@@ -209,14 +233,36 @@ async function enviarPedidoParaBackend(pedido) {
             body: JSON.stringify(pedido)
         });
 
+        console.log('Status da resposta:', response.status);
+        console.log('Status texto:', response.statusText);
+        console.log('Headers da resposta:', Object.fromEntries(response.headers.entries()));
+
+        // Tente pegar o texto da resposta antes de fazer .json()
+        const responseText = await response.text();
+        console.log('Resposta em texto:', responseText);
+
         if (!response.ok) {
-            throw new Error('Erro ao criar pedido: ' + response.statusText);
+            // Mostre mais detalhes do erro
+            console.error('Erro detalhado:', {
+                status: response.status,
+                statusText: response.statusText,
+                body: responseText
+            });
+            throw new Error(`Erro ao criar pedido: ${response.status} ${response.statusText} - ${responseText}`);
         }
 
-        const data = await response.json();
-        return data; // Deve retornar objeto com { idpedido: ... }
+        // Tente fazer parse do JSON
+        try {
+            const data = JSON.parse(responseText);
+            console.log('Dados parseados:', data);
+            return data;
+        } catch (parseError) {
+            console.error('Erro ao fazer parse do JSON:', parseError);
+            console.error('Texto que falhou no parse:', responseText);
+            throw new Error('Resposta do servidor não é um JSON válido');
+        }
     } catch (error) {
-        console.error('Erro na requisição ao backend:', error);
+        console.error('Erro completo na requisição:', error);
         throw error;
     }
 }
@@ -250,11 +296,14 @@ async function salvarItemDoPedido(item) {
 // =======================================================
 async function concluirCompra() {
     const btnFinalizar = document.getElementById('btn-finalizar-compra');
-    // Desabilita botão para evitar cliques duplos
     if (btnFinalizar) btnFinalizar.disabled = true;
 
     try {
         const carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
+
+        // Debug: Mostrar carrinho atual
+        console.log('Carrinho atual:', carrinho);
+        console.log('Primeiro item do carrinho:', carrinho[0]);
 
         if (carrinho.length === 0) {
             alert("Seu carrinho está vazio.");
@@ -262,60 +311,96 @@ async function concluirCompra() {
             return;
         }
 
-        // Recupera o CPF do usuário logado ou usa um fallback (Cuidado com FK no banco)
-        // Se estiver vazio, usei '99999999999' que existe no seu script SQL de exemplo
-        const cpfClienteLogado = localStorage.getItem('cpfUsuarioLogado') || '99999999999';
+        // 1. Verificar CPF do cliente
+        const cpfClienteLogado = localStorage.getItem('cpfUsuarioLogado');
+        if (!cpfClienteLogado) {
+            if (btnFinalizar) btnFinalizar.disabled = false;
 
-        // 1. Montar objeto do Pedido
-        const dadosDoPedido = {
-            datadopedido: new Date().toISOString().split('T')[0], // YYYY-MM-DD
-            clientepessoacpfpessoa: cpfClienteLogado,
-            funcionariopessoacpfpessoa: '11111111111' // Funcionário fixo conforme seu exemplo
-        };
+            // Salvar o carrinho atual para recuperar após o login
+            const carrinhoAtual = JSON.parse(localStorage.getItem('carrinho')) || [];
+            if (carrinhoAtual.length > 0) {
+                localStorage.setItem('carrinhoAntesDoLogin', JSON.stringify(carrinhoAtual));
+            }
 
-        // 2. Enviar Pedido e aguardar ID
-        const pedidoCriado = await enviarPedidoParaBackend(dadosDoPedido);
-
-        if (!pedidoCriado || !pedidoCriado.idpedido) {
-            throw new Error("O backend não retornou o ID do pedido gerado.");
+            // Redirecionar para a tela de login
+            window.location.href = 'http://localhost:3001/login/abrirTelaLogin?redirect=carrinho';   //<<<<<<<<<<<<<<<<<<<<<<< essa parte requer atenção
+            return;
         }
 
-        const idPedido = pedidoCriado.idpedido;
+        // 2. Montar objeto do Pedido
+        const dadosDoPedido = {
+            datadopedido: formatarDataParaYYYYMMDD(new Date()), // Usar função robusta
+            clientepessoacpfpessoa: cpfClienteLogado,
+            funcionariopessoacpfpessoa: '11111111111' // Verificar se este CPF existe
+        };
+
+        console.log('Dados do pedido a ser enviado:', dadosDoPedido);
+
+        // 3. Enviar Pedido
+        const pedidoCriado = await enviarPedidoParaBackend(dadosDoPedido);
+
+        // Debug: Verificar resposta do backend
+        console.log('Resposta completa do backend:', pedidoCriado);
+
+        // ⚠️ ATENÇÃO: O backend retorna { id_pedido: X } (com underline)
+        // Mas você está tentando acessar .idpedido (sem underline)
+        const idPedido = pedidoCriado.id_pedido || pedidoCriado.idpedido;
+
+        console.log('ID do pedido extraído:', idPedido);
+
+        if (!idPedido) {
+            console.error('Estrutura da resposta inesperada:', pedidoCriado);
+            throw new Error("Não foi possível obter o ID do pedido criado. Resposta: " + JSON.stringify(pedidoCriado));
+        }
+
         console.log("Pedido criado com ID:", idPedido);
 
-        // 3. Enviar cada item do carrinho para o banco (PedidoHasProduto)
+        // 4. Enviar cada item do carrinho
         for (const item of carrinho) {
-            // Monta o objeto conforme as colunas da tabela PedidoHasProduto
+
+            const quantidadeCompra = item.quantidade || item.quantidadeEmEstoque || item.qtd || 1;
+
             const dadosItem = {
                 produtoidproduto: item.idproduto,
                 pedidoidpedido: idPedido,
-                quantidade: item.quantidadeEmEstoque, // No seu carrinho, 'quantidadeEmEstoque' é a qtd comprada
-                precounitario: item.precoUnitario
+                quantidade: quantidadeCompra, //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< o erro estava aqui
+                precounitario: item.precoUnitario || item.preco
             };
 
+            console.log('Enviando item:', dadosItem);
             await salvarItemDoPedido(dadosItem);
         }
 
-        // 4. Sucesso: Limpar carrinho e feedback visual
+        // 5. Sucesso
         localStorage.removeItem('carrinho');
         window.valorFinalCalculado = 0;
         window.carrinhoVazio = true;
 
+        // Feedback visual
         document.getElementById('pagina-carrinho').style.display = 'none';
         document.getElementById('mensagem-final').style.display = 'block';
 
         const header = document.getElementById('header-carrinho');
         if (header) header.style.display = 'none';
 
-        // Redireciona após 2 segundos
-        setTimeout(function () {
+        // Redirecionar
+        setTimeout(() => {
             window.location.href = 'http://localhost:3001/menu';
         }, 2000);
 
     } catch (error) {
+        console.error('Erro detalhado em concluirCompra:', error);
         alert('Houve um erro ao processar seu pedido: ' + error.message);
         if (btnFinalizar) btnFinalizar.disabled = false;
     }
+}
+
+// Função auxiliar para formatar data
+function formatarDataParaYYYYMMDD(data) {
+    const ano = data.getFullYear();
+    const mes = String(data.getMonth() + 1).padStart(2, '0');
+    const dia = String(data.getDate()).padStart(2, '0');
+    return `${ano}-${mes}-${dia}`;
 }
 
 // Inicialização da página

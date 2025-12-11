@@ -24,18 +24,52 @@ exports.listarPedido = async (req, res) => {
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 };
-
+// Adicione um log para verificar a query e os parâmetros
 exports.criarProximoPedido = async (req, res) => {
+  console.log('Criando próximo pedido com dados:', req.body);
+
   try {
     const { datadopedido, clientepessoacpfpessoa, funcionariopessoacpfpessoa } = req.body;
+
+    // Console.log para testar no DBeaver
+    //     console.log(`
+    // ===========================================
+    // TESTE PARA DBEAVER - SQL INSERT:
+    // ===========================================
+    // INSERT INTO pedido (datadopedido, clientepessoacpfpessoa, funcionariopessoacpfpessoa) 
+    // VALUES ('${datadopedido}', '${clientepessoacpfpessoa}', '${funcionariopessoacpfpessoa}');
+    // ===========================================
+    // `);
+
+    // Log dos parâmetros que serão enviados para a query
+    console.log('Parâmetros da query:', {
+      datadopedido,
+      clientepessoacpfpessoa,
+      funcionariopessoacpfpessoa
+    });
+
+    // Teste a query diretamente para debug
+    const sql = 'INSERT INTO pedido (datadopedido, clientepessoacpfpessoa, funcionariopessoacpfpessoa) VALUES ($1, $2, $3) RETURNING idpedido AS id_pedido';
+    console.log('SQL que será executado:', sql);
+    console.log('Valores dos parâmetros:', [datadopedido, clientepessoacpfpessoa, funcionariopessoacpfpessoa]);
+
     const result = await query(
-      'INSERT INTO pedido (datadopedido, clientepessoacpfpessoa, funcionariopessoacpfpessoa) VALUES ($1, $2, $3) RETURNING idpedido AS id_pedido',
+      sql,
       [datadopedido, clientepessoacpfpessoa, funcionariopessoacpfpessoa]
     );
+
+    // console.log('Resultado da query:', result);
+    // console.log('Rows retornadas:', result.rows);
+
     res.status(201).json(result.rows[0]);
   } catch (error) {
-    console.error('Erro ao criar próximo pedido:', error);
-    res.status(500).json({ error: 'Erro interno do servidor' });
+    // console.error('Erro detalhado ao criar próximo pedido:', error);
+    // console.error('Stack trace completo:', error.stack);
+    res.status(500).json({
+      error: 'Erro interno do servidor',
+      message: error.message,
+      detail: error.detail // PostgreSQL pode fornecer detalhes adicionais
+    });
   }
 };
 
@@ -99,7 +133,7 @@ exports.listarPedidosPorCliente = async (req, res) => {
         datadopedido AS data_pedido, 
         clientepessoacpfpessoa AS cliente_pessoa_cpf_pessoa, 
         funcionariopessoacpfpessoa AS funcionario_pessoa_cpf_pessoa 
-      FROM pedido WHERE clientepessoacpfpessoa = $1 ORDER BY idpedido`, 
+      FROM pedido WHERE clientepessoacpfpessoa = $1 ORDER BY idpedido`,
       [cpf]
     );
     res.json(result.rows);
@@ -131,7 +165,7 @@ exports.atualizarPedido = async (req, res) => {
     );
 
     if (updateResult.rows.length === 0) {
-        return res.status(404).json({ error: 'Pedido não encontrado' });
+      return res.status(404).json({ error: 'Pedido não encontrado' });
     }
 
     res.json(updateResult.rows[0]);
@@ -148,9 +182,9 @@ exports.deletarPedido = async (req, res) => {
     if (isNaN(id)) return res.status(400).json({ error: 'ID inválido' });
 
     const result = await query('DELETE FROM pedido WHERE idpedido = $1 RETURNING idpedido', [id]);
-    
+
     if (result.rows.length === 0) {
-        return res.status(404).json({ error: 'Pedido não encontrado' });
+      return res.status(404).json({ error: 'Pedido não encontrado' });
     }
 
     res.status(204).send();
