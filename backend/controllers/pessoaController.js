@@ -7,7 +7,7 @@ const path = require('path');
 exports.abrirCrudPessoa = (req, res) => {
 //  console.log('pessoaController - Rota /abrirCrudPessoa - abrir o crudPessoa');
   res.sendFile(path.join(__dirname, '../../frontend-Gerente/pessoa/pessoa.html'));
-} 
+}  
 
 exports.listarPessoas = async (req, res) => {
   try {
@@ -18,7 +18,7 @@ exports.listarPessoas = async (req, res) => {
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 }
-
+ 
 exports.criarPessoa = async (req, res) => {
   try {
     const { cpfPessoa, nomePessoa, emailPessoa, senhaPessoa, dataNascimentoPessoa, EnderecoIdEndereco } = req.body;

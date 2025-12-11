@@ -1,7 +1,7 @@
 
 
 /*
- //cpf_pessoa, nome_pessoa, data_nascimento_pessoa,endereco_pessoa,senha_pessoa, email_pessoa
+ //cpfPessoa, nomePessoa, dataNascimentoPessoa,EnderecoIdEndereco,senhaPessoa, emailPessoa
 */
 // Configuração da API, IP e porta.
 const API_BASE_URL = 'http://localhost:3001';
@@ -45,31 +45,29 @@ function mostrarMensagem(texto, tipo = 'info') {
 }
 
 function bloquearCampos(bloquearPrimeiro) {
-    const inputs = document.querySelectorAll('input, select,checkbox'); // Seleciona todos os inputs e selects do DOCUMENTO
+    const inputs = document.querySelectorAll('input, select'); 
+
     inputs.forEach((input, index) => {
-        // console.log(`Input ${index}: ${input.name}, disabled: ${input.disabled}`);
         if (index === 0) {
-            // Primeiro elemento - bloqueia se bloquearPrimeiro for true, libera se for false
             input.disabled = bloquearPrimeiro;
         } else {
-            // Demais elementos - faz o oposto do primeiro
             input.disabled = !bloquearPrimeiro;
         }
     });
 }
 
+
 // Função para limpar formulário
 function limparFormulario() {
     form.reset();
     document.getElementById('checkboxFuncionario').checked = false;
-    document.getElementById('salario_funcionario').value = '';
-    document.getElementById('cargo_id_cargo').value = '';
-    document.getElementById('porcentagem_comissao_funcionario').value = '';
+    document.getElementById('salario').value = '';
+    document.getElementById('CargosIdCargo').value = '';
 
 
     document.getElementById('checkboxCliente').checked = false;
-    document.getElementById('renda_cliente').value = '';
-    document.getElementById('data_cadastro_cliente').value = '';
+    document.getElementById('rendaCliente').value = '';
+    document.getElementById('dataDeCadastroCliente').value = '';
 
 }
 
@@ -114,9 +112,9 @@ function converterDataParaFormatoYYYYMMDD(isoDateString) {
     }
 }
 
-async function funcaoEhFuncionario(pessoaId) {
+async function funcaoEhFuncionario(PessoaCpfPessoa) {
     try {
-        const response = await fetch(`${API_BASE_URL}/funcionario/${pessoaId}`);
+        const response = await fetch(`${API_BASE_URL}/funcionario/${PessoaCpfPessoa}`);
 
         if (response.status === 404) {
          //   console.log('Não é funcionario');
@@ -127,9 +125,8 @@ async function funcaoEhFuncionario(pessoaId) {
             const funcionarioData = await response.json();
             return {
                 ehFuncionario: true,
-                salario_funcionario: funcionarioData.salario_funcionario,
-                cargo_id_cargo: funcionarioData.cargo_id_cargo,
-                porcentagem_comissao_funcionario: funcionarioData.porcentagem_comissao_funcionario
+                salario: funcionarioData.salario,
+                CargosIdCargo: funcionarioData.CargosIdCargo,
             };
         }
 
@@ -145,9 +142,9 @@ async function funcaoEhFuncionario(pessoaId) {
     }
 }
 
-async function funcaoEhCliente(pessoaId) {
+async function funcaoEhCliente(PessoaCpfPessoa) {
     try {
-        const response = await fetch(`${API_BASE_URL}/cliente/${pessoaId}`);
+        const response = await fetch(`${API_BASE_URL}/cliente/${PessoaCpfPessoa}`);
 
         if (response.status === 404) {
          //   console.log('Não é cliente');
@@ -158,8 +155,8 @@ async function funcaoEhCliente(pessoaId) {
             const clienteData = await response.json();
             return {
                 ehCliente: true,
-                renda_cliente: clienteData.renda_cliente,
-                data_cadastro_cliente: clienteData.data_cadastro_cliente
+                rendaCliente: clienteData.rendaCliente,
+                dataDeCadastroCliente: clienteData.dataDeCadastroCliente
             };
         }
 
@@ -218,23 +215,23 @@ async function buscarPessoa() {
 
 // Função para preencher formulário com dados da pessoa, se for funcionario ou cliente, preencher também os dados respectivos.
 async function preencherFormulario(pessoa) {
-    currentPersonId = pessoa.cpf_pessoa;
-    searchId.value = pessoa.cpf_pessoa;
-    document.getElementById('nome_pessoa').value = pessoa.nome_pessoa || '';
+    currentPersonId = pessoa.cpfPessoa;
+    searchId.value = pessoa.cpfPessoa;
+    document.getElementById('nomePessoa').value = pessoa.nomePessoa || '';
     // Formatação da data para input type="date"
     //alert todos os dados da pessoa
     //alert('Dados da pessoa: ' + JSON.stringify(pessoa));
 
-    if (pessoa.data_nascimento_pessoa) {
-        const data = new Date(pessoa.data_nascimento_pessoa);
+    if (pessoa.dataNascimentoPessoa) {
+        const data = new Date(pessoa.dataNascimentoPessoa);
         const dataFormatada = converterDataParaFormatoYYYYMMDD(data.toISOString());
-        document.getElementById('data_nascimento').value = dataFormatada;
+        document.getElementById('dataNascimentoPessoa').value = dataFormatada;
     } else {
-        document.getElementById('data_nascimento').value = '';
+        document.getElementById('dataNascimentoPessoa').value = '';
     }
-    document.getElementById('endereco_pessoa').value = pessoa.endereco_pessoa || '';
-    document.getElementById('senha_pessoa').value = pessoa.senha_pessoa || '';
-    document.getElementById('email_pessoa').value = pessoa.email_pessoa || '';
+    document.getElementById('EnderecoIdEndereco').value = pessoa.EnderecoIdEndereco || '';
+    document.getElementById('senhaPessoa').value = pessoa.senhaPessoa || '';
+    document.getElementById('emailPessoa').value = pessoa.emailPessoa || '';
 
 
     // Verifica se a pessoa é funcionario
@@ -245,16 +242,14 @@ async function preencherFormulario(pessoa) {
     if (ehFuncionarioEssaPessoa.ehFuncionario) {
         // alert('É funcionario: ' + oFuncionario.ehFuncionario + ' - ' + oFuncionario.salario + ' - ' + oFuncionario.departamento);
         document.getElementById('checkboxFuncionario').checked = true;
-        document.getElementById('cargo_id_cargo').value = ehFuncionarioEssaPessoa.cargo_id_cargo;
-        document.getElementById('salario_funcionario').value = ehFuncionarioEssaPessoa.salario_funcionario;
-        document.getElementById('porcentagem_comissao_funcionario').value = ehFuncionarioEssaPessoa.porcentagem_comissao_funcionario;
+        document.getElementById('CargosIdCargo').value = ehFuncionarioEssaPessoa.CargosIdCargo;
+        document.getElementById('salario').value = ehFuncionarioEssaPessoa.salario;
 
     } else {
         // Não é funcionario
         document.getElementById('checkboxFuncionario').checked = false;
-        document.getElementById('cargo_id_cargo').value = '';
-        document.getElementById('salario_funcionario').value = '';
-        document.getElementById('porcentagem_comissao_funcionario').value = '';
+        document.getElementById('CargosIdCargo').value = '';
+        document.getElementById('salario').value = '';
     }
 
     //Verifica se a pessoa é cliente
@@ -263,14 +258,14 @@ async function preencherFormulario(pessoa) {
     if (ehClienteEssaPessoa.ehCliente) {
         // alert('É cliente: ' + oCliente.ehCliente + ' - ' + oCliente.renda + ' - ' + oCliente.data_cadastro);
         document.getElementById('checkboxCliente').checked = true;
-        document.getElementById('renda_cliente').value = ehClienteEssaPessoa.renda_cliente;
-        document.getElementById('data_cadastro_cliente').value = converterDataParaFormatoYYYYMMDD(ehClienteEssaPessoa.data_cadastro_cliente);
+        document.getElementById('rendaCliente').value = ehClienteEssaPessoa.rendaCliente;
+        document.getElementById('dataDeCadastroCliente').value = converterDataParaFormatoYYYYMMDD(ehClienteEssaPessoa.dataDeCadastroCliente);
 
     } else {
         // Não é cliente
         document.getElementById('checkboxCliente').checked = false;
-        document.getElementById('renda_cliente').value = '';
-        document.getElementById('data_cadastro_cliente').value = '';
+        document.getElementById('rendaCliente').value = '';
+        document.getElementById('dataDeCadastroCliente').value = '';
     }
 }
 
@@ -285,7 +280,7 @@ async function incluirPessoa() {
     bloquearCampos(true);
 
     mostrarBotoes(false, false, false, false, true, true); // mostrarBotoes(btBuscar, btIncluir, btAlterar, btExcluir, btSalvar, btCancelar)
-    document.getElementById('nome_pessoa').focus();
+    document.getElementById('nomePessoa').focus();
     operacao = 'incluir';
     // console.log('fim nova pessoa - currentPersonId: ' + currentPersonId);
 }
@@ -295,7 +290,7 @@ async function alterarPessoa() {
     mostrarMensagem('Digite os dados!', 'success');
     bloquearCampos(true);
     mostrarBotoes(false, false, false, false, true, true);// mostrarBotoes(btBuscar, btIncluir, btAlterar, btExcluir, btSalvar, btCancelar)
-    document.getElementById('nome_pessoa').focus();
+    document.getElementById('nomePessoa').focus();
     operacao = 'alterar';
 }
 
@@ -315,23 +310,22 @@ async function salvarOperacao() {
     // montar objeto pessoa com os nomes que o backend espera
     const formData = new FormData(form);
     const pessoa = {
-        cpf_pessoa: searchId.value.trim(),
-        nome_pessoa: formData.get('nome_pessoa'),
-        // ajuste o nome do campo de data conforme seu backend: data_nascimento_pessoa ou data_nascimento
-        data_nascimento_pessoa: converterDataParaISO(formData.get('data_nascimento')) || null,
-        endereco_pessoa: formData.get('endereco_pessoa'),
-        senha_pessoa: formData.get('senha_pessoa'),
-        email_pessoa: formData.get('email_pessoa')
+        cpfPessoa: searchId.value.trim(),
+        nomePessoa: formData.get('nomePessoa'),
+        // ajuste o nome do campo de data conforme seu backend: dataNascimentoPessoa ou dataNascimentoPessoa
+        dataNascimentoPessoa: converterDataParaISO(formData.get('dataNascimentoPessoa')) || null,
+        EnderecoIdEndereco: formData.get('EnderecoIdEndereco'),
+        senhaPessoa: formData.get('senhaPessoa'),
+        emailPessoa: formData.get('emailPessoa')
     };
 
     // capturar dados do funcionario só se checkbox marcado
     let funcionario = null;
     if (document.getElementById('checkboxFuncionario').checked) {
         funcionario = {
-            pessoa_cpf_pessoa: pessoa.cpf_pessoa,
-            salario_funcionario: document.getElementById('salario_funcionario').value,
-            cargo_id_cargo: parseInt(document.getElementById('cargo_id_cargo').value),
-            porcentagem_comissao_funcionario: document.getElementById('porcentagem_comissao_funcionario').value
+            pessoa_cpfPessoa: pessoa.cpfPessoa,
+            salario: document.getElementById('salario').value,
+            CargosIdCargo: parseInt(document.getElementById('CargosIdCargo').value),
         };
     }
     const caminhoFunc = `${API_BASE_URL}/funcionario/${currentPersonId}`;
@@ -340,9 +334,9 @@ async function salvarOperacao() {
     let cliente = null;
     if (document.getElementById('checkboxCliente').checked) {
         cliente = {
-            pessoa_cpf_pessoa: pessoa.cpf_pessoa,
-            renda_cliente: document.getElementById('renda_cliente').value,
-            data_cadastro_cliente: document.getElementById('data_cadastro_cliente').value || null
+            pessoa_cpfPessoa: pessoa.cpfPessoa,
+            rendaCliente: document.getElementById('rendaCliente').value,
+            dataDeCadastroCliente: document.getElementById('dataDeCadastroCliente').value || null
         };
     }
     const caminhoCliente = `${API_BASE_URL}/cliente/${currentPersonId}`;
@@ -609,15 +603,15 @@ function renderizarTabelaPessoas(pessoas) {
         const row = document.createElement('tr');
         row.innerHTML = `
                     <td>
-                        <button class="btn-id" onclick="selecionarPessoa(${pessoa.cpf_pessoa})">
-                            ${pessoa.cpf_pessoa}
+                        <button class="btn-id" onclick="selecionarPessoa(${pessoa.cpfPessoa})">
+                            ${pessoa.cpfPessoa}
                         </button>
                     </td>
-                    <td>${pessoa.nome_pessoa}</td>
-                    <td>${formatarData(pessoa.data_nascimento_pessoa)}</td>                 
-                    <td>${pessoa.endereco_pessoa}</td>
-                    <td>${pessoa.senha_pessoa}</td>
-                    <td>${pessoa.email_pessoa}</td>
+                    <td>${pessoa.nomePessoa}</td>
+                    <td>${formatarData(pessoa.dataNascimentoPessoa)}</td>                 
+                    <td>${pessoa.EnderecoIdEndereco}</td>
+                    <td>${pessoa.senhaPessoa}</td>
+                    <td>${pessoa.emailPessoa}</td>
                 `;
         pessoasTableBody.appendChild(row);
     });
@@ -634,7 +628,7 @@ document.addEventListener('DOMContentLoaded', popularCargosSelect());
 // Função que busca os cargos no backend e preenche o menu suspenso (select)
 async function popularCargosSelect() {
     // 1. Encontrar o elemento <select>
-    const selectCargo = document.getElementById('cargo_id_cargo');
+    const selectCargo = document.getElementById('CargosIdCargo');
 
     // Limpa as opções existentes (mantendo o "Selecione o Cargo" se for o caso)
     // selectCargo.innerHTML = '<option value="">Selecione o Cargo</option>';
@@ -659,11 +653,11 @@ async function popularCargosSelect() {
             // Cria um novo elemento <option>
             const option = document.createElement('option');
             
-            // Define o valor (que será o FK - id_cargo)
-            option.value = cargo.id_cargo; 
+            // Define o valor (que será o FK - idcargo)
+            option.value = cargo.idcargo; 
             
-            // Define o texto visível na lista (que será o nome_cargo)
-            option.textContent = cargo.nome_cargo; 
+            // Define o texto visível na lista (que será o nomeCargo)
+            option.textContent = cargo.nomeCargo; 
             
             // Adiciona a opção ao select
             selectCargo.appendChild(option);
