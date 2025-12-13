@@ -9,7 +9,7 @@ function getProp(obj, terms) {
         if (obj[t] !== undefined) return obj[t];
     }
     
-    // 2. Fallback: Procura ignorando case (para casos extremos)
+    // 2. Fallback: Procura ignorando case
     const keys = Object.keys(obj);
     for (let key of keys) {
         const keyLower = key.toLowerCase();
@@ -36,16 +36,15 @@ async function carregarPedidosUsuario() {
         
         const timestamp = new Date().getTime();
 
-        // Fazendo as requisições para as rotas que você definiu
+        // Fazendo as requisições
         const [resPedidos, resItensPedido, resProdutos] = await Promise.all([
-            // 1. Pedidos do cliente (Retorna JSON com aliases: id_pedido, data_pedido...)
+            // 1. Pedidos do cliente (Agora traz JOIN com Pagamento: id_pedido, nome_pagamento...)
             fetch(`${HOST_BACKEND}/pedido/cliente/${clienteId}?t=${timestamp}`), 
             
-            // 2. Itens do Pedido (Retorna JSON cru: pedidoidpedido, produtoidproduto...)
-            // ATENÇÃO: Verifique se no seu index.js a rota é '/pedidohasproduto'
+            // 2. Itens do Pedido
             fetch(`${HOST_BACKEND}/pedidohasproduto?t=${timestamp}`).catch(() => ({ ok: false })), 
             
-            // 3. Catálogo de Produtos (Retorna JSON cru: idproduto, nomeproduto...)
+            // 3. Catálogo de Produtos
             fetch(`${HOST_BACKEND}/produto?t=${timestamp}`).catch(() => ({ ok: false }))
         ]);
 
@@ -70,9 +69,8 @@ async function carregarPedidosUsuario() {
 
         const container = document.createElement('div');
 
-        // Ordena: Mais recente primeiro (decrescente por ID)
+        // Ordena: Mais recente primeiro
         meusPedidos.sort((a, b) => {
-            // No controller você usou 'AS id_pedido', então buscamos isso primeiro
             const idA = getProp(a, ['id_pedido', 'idpedido']);
             const idB = getProp(b, ['id_pedido', 'idpedido']);
             return Number(idB) - Number(idA);
@@ -81,7 +79,6 @@ async function carregarPedidosUsuario() {
         meusPedidos.forEach(pedido => {
             // ============================================================
             // 1. DADOS DO PEDIDO
-            // O Controller usa ALIAS, então as chaves vêm com underline
             // ============================================================
             const idPedido = getProp(pedido, ['id_pedido', 'idpedido']);
             const dataRaw = getProp(pedido, ['data_pedido', 'datadopedido']);
@@ -90,8 +87,6 @@ async function carregarPedidosUsuario() {
 
             // ============================================================
             // 2. FILTRAR ITENS
-            // A tabela PedidoHasProduto NÃO tem alias no controller, 
-            // então o Postgres retorna tudo minúsculo: 'pedidoidpedido'
             // ============================================================
             const itensDestePedido = todosItensPedido.filter(item => {
                 const fkPedido = getProp(item, ['pedidoidpedido', 'pedido_id']); 
@@ -105,18 +100,15 @@ async function carregarPedidosUsuario() {
                 htmlItens = `<div class="itens-container"><div class="titulo-itens">Itens Comprados</div>`;
                 
                 itensDestePedido.forEach(itemRelacao => {
-                    // Tabela PedidoHasProduto -> coluna 'produtoidproduto' (tudo minúsculo)
                     const idProd = getProp(itemRelacao, ['produtoidproduto']);
                     const qtd = Number(getProp(itemRelacao, ['quantidade']) || 1);
                     const precoUnitario = Number(getProp(itemRelacao, ['precounitario']) || 0);
 
-                    // Busca detalhes visuais no catálogo (Tabela Produto -> 'idproduto')
                     const produtoDetalhes = catalogoProdutos.find(p => {
                         const pId = getProp(p, ['idproduto']);
                         return String(pId) === String(idProd);
                     });
 
-                    // Tabela Produto -> 'nomeproduto'
                     const nomeProduto = produtoDetalhes ? getProp(produtoDetalhes, ['nomeproduto']) : `Produto #${idProd}`;
                     
                     const subtotal = precoUnitario * qtd;
@@ -136,20 +128,47 @@ async function carregarPedidosUsuario() {
             }
 
             // ============================================================
-            // 3. DATA E VALOR TOTAL
+            // 3. PAGAMENTO E FORMA DE PAGAMENTO (NOVO!)
+            // Tenta pegar o nome vindo do banco (Ex: "Cartão", "PIX")
+            // ============================================================
+            
+            // Busca 'nome_pagamento' (do alias no controller) ou 'nomeformapagamento' (do banco)
+            const nomePagamentoBanco = getProp(pedido, ['nome_pagamento', 'nomeformapagamento']);
+            
+            // Busca 'valor_total' (do alias) ou 'valortotalpagamento' (do banco)
+            const valorPagamentoBanco = Number(getProp(pedido, ['valor_total', 'valortotalpagamento']));
+
+            let valorTotalFinal = somaValorItens;
+            let formaNome = "Processando...";
+            let estiloBadge = "background-color: #f0ad4e; color: white;"; // Laranja (Pendente)
+
+            // Lógica de exibição do status
+            if (nomePagamentoBanco) {
+                // Se veio do banco, está confirmado
+                formaNome = nomePagamentoBanco; 
+                estiloBadge = "background-color: #28a745; color: white;"; // Verde (Sucesso)
+                
+                // Se temos o valor exato do pagamento no banco, usamos ele (é mais confiável que a soma)
+                if (valorPagamentoBanco > 0) {
+                    valorTotalFinal = valorPagamentoBanco;
+                }
+            } else {
+                // Fallback para pedidos antigos ou sem pagamento registrado
+                formaNome = "Pendente / Não Inf.";
+                estiloBadge = "background-color: #6c757d; color: white;"; // Cinza
+            }
+
+            // ============================================================
+            // 4. DATA E RENDERIZAÇÃO
             // ============================================================
             let dataFormatada = "--/--/----";
             if (dataRaw) {
-                // Corrige problema de fuso horário cortando a string na letra T
                 const dataString = String(dataRaw).split('T')[0]; 
-                const partes = dataString.split('-'); // [2024, 01, 01]
+                const partes = dataString.split('-'); 
                 if (partes.length === 3) {
                     dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
                 }
             }
-
-            // Se você não tem tabela de Pagamento integrada aqui, usamos a soma dos itens
-            const valorTotalFinal = somaValorItens;
 
             const card = document.createElement('div');
             card.className = 'pedido-card';
@@ -160,11 +179,21 @@ async function carregarPedidosUsuario() {
                 </div>
                 
                 <div class="pedido-body">
-                    <div class="info-linha">
-                        <span class="label">Total Calculado:</span>
-                        <span class="badge-pagamento">${valorTotalFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center;">
+                        <span class="label" style="font-weight:bold; color:#555;">Pagamento:</span>
+                        <span style="padding: 4px 8px; border-radius: 4px; font-size: 0.9rem; ${estiloBadge}">
+                            ${formaNome}
+                        </span>
                     </div>
+                    
                     ${htmlItens}
+
+                    <div style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; display: flex; justify-content: space-between; align-items: center;">
+                        <span class="total-label" style="font-size: 1.1rem; font-weight: bold; color: #8B1E3F;">Total Final</span>
+                        <span class="total-valor" style="font-size: 1.2rem; font-weight: bold; color: #333;">
+                            ${valorTotalFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                        </span>
+                    </div>
                 </div>
             `;
             container.appendChild(card);

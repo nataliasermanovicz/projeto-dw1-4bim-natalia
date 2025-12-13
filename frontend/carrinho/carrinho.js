@@ -1,3 +1,5 @@
+
+
 // Localização do backend e variáveis globais
 let usuarioLogado = localStorage.getItem('usuarioLogado');
 const HOST_BACKEND = 'http://localhost:3001';
@@ -5,6 +7,9 @@ const HOST_BACKEND = 'http://localhost:3001';
 // Variáveis globais para o cálculo
 window.valorFinalCalculado = 0;
 window.carrinhoVazio = true;
+
+// NOVA VARIÁVEL: Guarda o ID da forma de pagamento (1=Cartão, 2=PIX)
+let idFormaPagamentoSelecionada = 1; // Começa com 1 (Cartão) por padrão
 
 // =======================================================
 // === FUNÇÃO PRINCIPAL: MOSTRAR/RECARREGAR CARRINHO ===
@@ -111,12 +116,14 @@ function mostrarFormaPagamento() {
 }
 
 function pagarComCartao() {
+    idFormaPagamentoSelecionada = 1; // <--- DEFINE COMO CARTÃO
     document.getElementById('pagamento-cartao').style.display = 'block';
     document.getElementById('pagamento-pix').style.display = 'none';
     document.getElementById('qrcode-area').style.display = 'none';
 }
 
 function pagarPIX() {
+    idFormaPagamentoSelecionada = 2; // <--- DEFINE COMO PIX
     document.getElementById('pagamento-pix').style.display = 'block';
     document.getElementById('pagamento-cartao').style.display = 'none';
     document.getElementById('qrcode-area').style.display = 'block';
@@ -124,6 +131,7 @@ function pagarPIX() {
 }
 
 function pagarComPix() {
+    idFormaPagamentoSelecionada = 2; // <--- GARANTIA
     document.getElementById('pagamento-pix').style.display = 'block';
     document.getElementById('pagamento-cartao').style.display = 'none';
     document.getElementById('qrcode-area').style.display = 'block';
@@ -328,10 +336,14 @@ async function concluirCompra() {
         }
 
         // 2. Montar objeto do Pedido
-        const dadosDoPedido = {
-            datadopedido: formatarDataParaYYYYMMDD(new Date()), // Usar função robusta
+            const dadosDoPedido = {
+            datadopedido: formatarDataParaYYYYMMDD(new Date()),
             clientepessoacpfpessoa: cpfClienteLogado,
-            funcionariopessoacpfpessoa: '11111111111' // Verificar se este CPF existe
+            funcionariopessoacpfpessoa: null, 
+            
+            // ADICIONE ESTES DOIS CAMPOS:
+            valorTotal: window.valorFinalCalculado, // Envia o valor total para salvar no Pagamento
+            idFormaPagamento: idFormaPagamentoSelecionada // Envia 1 ou 2
         };
 
         console.log('Dados do pedido a ser enviado:', dadosDoPedido);

@@ -28,77 +28,68 @@ exports.listarPedido = async (req, res) => {
 // Substitua APENAS a função exports.criarProximoPedido por esta:
 
 exports.criarProximoPedido = async (req, res) => {
-  console.log('Criando próximo pedido com dados:', req.body);
+  console.log('Criando pedido completo:', req.body);
 
   try {
-    const { datadopedido, clientepessoacpfpessoa, funcionariopessoacpfpessoa } = req.body;
+    const { 
+        datadopedido, 
+        clientepessoacpfpessoa, 
+        funcionariopessoacpfpessoa,
+        valorTotal,        // Vem do frontend agora
+        idFormaPagamento   // Vem do frontend agora (1 ou 2)
+    } = req.body;
 
-    // =================================================================================
-    // 1. CORREÇÃO AUTOMÁTICA DE CLIENTE
-    // Verifica se a pessoa já existe na tabela Cliente. Se não, insere agora.
-    // =================================================================================
-    
-    // Verifica se existe na tabela Cliente
-    const checkCliente = await query(
-        'SELECT * FROM Cliente WHERE pessoacpfpessoa = $1', 
-        [clientepessoacpfpessoa]
-    );
-
+    // 1. Garante que o Cliente existe
+    const checkCliente = await query('SELECT * FROM Cliente WHERE pessoacpfpessoa = $1', [clientepessoacpfpessoa]);
     if (checkCliente.rows.length === 0) {
-        console.log(`CPF ${clientepessoacpfpessoa} não encontrado na tabela Cliente. Promovendo a Cliente agora...`);
-        // Insere na tabela Cliente
-        await query(
-            'INSERT INTO Cliente (pessoacpfpessoa) VALUES ($1)', 
-            [clientepessoacpfpessoa]
-        );
+        await query('INSERT INTO Cliente (pessoacpfpessoa) VALUES ($1)', [clientepessoacpfpessoa]);
     }
 
-    // =================================================================================
-    // 2. TRATAMENTO DE FUNCIONÁRIO (PREVENÇÃO DE ERRO)
-    // Se o funcionário 11111111111 não existir, define como NULL para não travar o pedido
-    // =================================================================================
-    
+    // 2. Garante/Verifica Funcionário
     let cpfFuncionario = funcionariopessoacpfpessoa;
-
-    // Se o CPF for o "fictício" padrão, verifica se ele existe de verdade no banco
     if (cpfFuncionario === '11111111111') {
-         const checkFunc = await query(
-             'SELECT * FROM Funcionario WHERE pessoacpfpessoa = $1', 
-             [cpfFuncionario]
-         );
-         
-         // Se não existir funcionário com esse CPF, define como NULL
-         if (checkFunc.rows.length === 0) {
-             console.warn('Funcionário 11111111111 não existe no banco. Definindo como NULL no pedido.');
-             cpfFuncionario = null; 
-         }
+         const checkFunc = await query('SELECT * FROM Funcionario WHERE pessoacpfpessoa = $1', [cpfFuncionario]);
+         if (checkFunc.rows.length === 0) cpfFuncionario = null; 
     }
 
-    // =================================================================================
-    // 3. CRIAÇÃO DO PEDIDO (Original)
-    // =================================================================================
+    // 3. INSERIR PEDIDO
+    const sqlPedido = 'INSERT INTO Pedido (datadopedido, clientepessoacpfpessoa, funcionariopessoacpfpessoa) VALUES ($1, $2, $3) RETURNING idpedido';
+    const resultPedido = await query(sqlPedido, [datadopedido, clientepessoacpfpessoa, cpfFuncionario]);
+    const idPedidoGerado = resultPedido.rows[0].idpedido;
 
-    const sql = 'INSERT INTO pedido (datadopedido, clientepessoacpfpessoa, funcionariopessoacpfpessoa) VALUES ($1, $2, $3) RETURNING idpedido AS id_pedido';
+    // =================================================================
+    // 4. INSERIR PAGAMENTO COM A FORMA CORRETA
+    // =================================================================
     
-    console.log('SQL que será executado:', sql);
-    console.log('Valores dos parâmetros:', [datadopedido, clientepessoacpfpessoa, cpfFuncionario]);
+    // Se o valorTotal vier undefined, usa 0
+    const valorFinal = valorTotal ? parseFloat(valorTotal) : 0; 
+    
+    // Se idFormaPagamento vier undefined, usa 2 (PIX) como fallback, mas o ideal é vir do front
+    const formaEscolhida = idFormaPagamento ? parseInt(idFormaPagamento) : 2; 
 
-    const result = await query(
-      sql,
-      [datadopedido, clientepessoacpfpessoa, cpfFuncionario]
+    // A. Inserir na tabela Pagamento (Tabela Pai)
+    await query(
+        'INSERT INTO Pagamento (PedidoIdPedido, dataPagamento, valorTotalPagamento) VALUES ($1, NOW(), $2)',
+        [idPedidoGerado, valorFinal]
     );
 
-    res.status(201).json(result.rows[0]);
+    // B. Inserir na tabela de Ligação (Onde define se é Cartão ou PIX)
+    await query(
+        'INSERT INTO PagamentoHasFormaPagamento (PagamentoIdPedido, FormaPagamentoIdFormaPagamento, valorPago) VALUES ($1, $2, $3)',
+        [idPedidoGerado, formaEscolhida, valorFinal]
+    );
+
+    console.log(`Pedido ${idPedidoGerado} criado. Pagamento: R$${valorFinal}, Forma ID: ${formaEscolhida}`);
+
+    // Retorna o ID com alias para o frontend não se perder
+    res.status(201).json({ id_pedido: idPedidoGerado });
 
   } catch (error) {
-    console.error('Erro detalhado ao criar próximo pedido:', error);
-    res.status(500).json({
-      error: 'Erro interno do servidor',
-      message: error.message,
-      detail: error.detail 
-    });
+    console.error('Erro ao criar pedido completo:', error);
+    res.status(500).json({ error: 'Erro no servidor', detail: error.message });
   }
 };
+
 // Criar pedido
 exports.criarPedido = async (req, res) => {
   try {
@@ -149,19 +140,27 @@ exports.obterPedido = async (req, res, next) => {
   }
 };
 
-// Listar pedidos por cliente (Com Alias)
 exports.listarPedidosPorCliente = async (req, res) => {
   try {
     const cpf = req.params.cpf;
-    const result = await query(`
+    
+    // Fazemos LEFT JOIN para trazer o pedido mesmo se o pagamento não tiver sido gravado ainda
+    const sql = `
       SELECT 
-        idpedido AS id_pedido, 
-        datadopedido AS data_pedido, 
-        clientepessoacpfpessoa AS cliente_pessoa_cpf_pessoa, 
-        funcionariopessoacpfpessoa AS funcionario_pessoa_cpf_pessoa 
-      FROM pedido WHERE clientepessoacpfpessoa = $1 ORDER BY idpedido`,
-      [cpf]
-    );
+        p.idpedido AS id_pedido, 
+        p.datadopedido AS data_pedido, 
+        p.clientepessoacpfpessoa AS cliente_cpf,
+        fp.nomeformapagamento AS nome_pagamento,   -- Trazemos o nome (Cartão/PIX)
+        pag.valortotalpagamento AS valor_total     -- Trazemos o valor gravado no pagamento
+      FROM Pedido p
+      LEFT JOIN Pagamento pag ON p.idPedido = pag.PedidoIdPedido
+      LEFT JOIN PagamentoHasFormaPagamento phf ON pag.PedidoIdPedido = phf.PagamentoIdPedido
+      LEFT JOIN FormaDePagamento fp ON phf.FormaPagamentoIdFormaPagamento = fp.idFormaPagamento
+      WHERE p.clientepessoacpfpessoa = $1
+      ORDER BY p.idpedido DESC
+    `;
+
+    const result = await query(sql, [cpf]);
     res.json(result.rows);
   } catch (error) {
     console.error('Erro ao listar pedidos por cliente:', error);
