@@ -4,9 +4,9 @@ const { Pool } = require('pg');
 const dbConfig = {
   host: 'localhost',
   port: 5432,
-  user: 'radames',
-  password: 'Lageado001.',
-  database: 'natalia-4bim',
+  user: 'postgres',
+  password: 'sermanovicz09',
+  database: 'dw4bim',
 
 
   // user: 'postgres',

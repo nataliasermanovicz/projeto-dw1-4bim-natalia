@@ -25,54 +25,80 @@ exports.listarPedido = async (req, res) => {
   }
 };
 // Adicione um log para verificar a query e os parâmetros
+// Substitua APENAS a função exports.criarProximoPedido por esta:
+
 exports.criarProximoPedido = async (req, res) => {
   console.log('Criando próximo pedido com dados:', req.body);
 
   try {
     const { datadopedido, clientepessoacpfpessoa, funcionariopessoacpfpessoa } = req.body;
 
-    // Console.log para testar no DBeaver
-    //     console.log(`
-    // ===========================================
-    // TESTE PARA DBEAVER - SQL INSERT:
-    // ===========================================
-    // INSERT INTO pedido (datadopedido, clientepessoacpfpessoa, funcionariopessoacpfpessoa) 
-    // VALUES ('${datadopedido}', '${clientepessoacpfpessoa}', '${funcionariopessoacpfpessoa}');
-    // ===========================================
-    // `);
+    // =================================================================================
+    // 1. CORREÇÃO AUTOMÁTICA DE CLIENTE
+    // Verifica se a pessoa já existe na tabela Cliente. Se não, insere agora.
+    // =================================================================================
+    
+    // Verifica se existe na tabela Cliente
+    const checkCliente = await query(
+        'SELECT * FROM Cliente WHERE pessoacpfpessoa = $1', 
+        [clientepessoacpfpessoa]
+    );
 
-    // Log dos parâmetros que serão enviados para a query
-    console.log('Parâmetros da query:', {
-      datadopedido,
-      clientepessoacpfpessoa,
-      funcionariopessoacpfpessoa
-    });
+    if (checkCliente.rows.length === 0) {
+        console.log(`CPF ${clientepessoacpfpessoa} não encontrado na tabela Cliente. Promovendo a Cliente agora...`);
+        // Insere na tabela Cliente
+        await query(
+            'INSERT INTO Cliente (pessoacpfpessoa) VALUES ($1)', 
+            [clientepessoacpfpessoa]
+        );
+    }
 
-    // Teste a query diretamente para debug
+    // =================================================================================
+    // 2. TRATAMENTO DE FUNCIONÁRIO (PREVENÇÃO DE ERRO)
+    // Se o funcionário 11111111111 não existir, define como NULL para não travar o pedido
+    // =================================================================================
+    
+    let cpfFuncionario = funcionariopessoacpfpessoa;
+
+    // Se o CPF for o "fictício" padrão, verifica se ele existe de verdade no banco
+    if (cpfFuncionario === '11111111111') {
+         const checkFunc = await query(
+             'SELECT * FROM Funcionario WHERE pessoacpfpessoa = $1', 
+             [cpfFuncionario]
+         );
+         
+         // Se não existir funcionário com esse CPF, define como NULL
+         if (checkFunc.rows.length === 0) {
+             console.warn('Funcionário 11111111111 não existe no banco. Definindo como NULL no pedido.');
+             cpfFuncionario = null; 
+         }
+    }
+
+    // =================================================================================
+    // 3. CRIAÇÃO DO PEDIDO (Original)
+    // =================================================================================
+
     const sql = 'INSERT INTO pedido (datadopedido, clientepessoacpfpessoa, funcionariopessoacpfpessoa) VALUES ($1, $2, $3) RETURNING idpedido AS id_pedido';
+    
     console.log('SQL que será executado:', sql);
-    console.log('Valores dos parâmetros:', [datadopedido, clientepessoacpfpessoa, funcionariopessoacpfpessoa]);
+    console.log('Valores dos parâmetros:', [datadopedido, clientepessoacpfpessoa, cpfFuncionario]);
 
     const result = await query(
       sql,
-      [datadopedido, clientepessoacpfpessoa, funcionariopessoacpfpessoa]
+      [datadopedido, clientepessoacpfpessoa, cpfFuncionario]
     );
 
-    // console.log('Resultado da query:', result);
-    // console.log('Rows retornadas:', result.rows);
-
     res.status(201).json(result.rows[0]);
+
   } catch (error) {
-    // console.error('Erro detalhado ao criar próximo pedido:', error);
-    // console.error('Stack trace completo:', error.stack);
+    console.error('Erro detalhado ao criar próximo pedido:', error);
     res.status(500).json({
       error: 'Erro interno do servidor',
       message: error.message,
-      detail: error.detail // PostgreSQL pode fornecer detalhes adicionais
+      detail: error.detail 
     });
   }
 };
-
 // Criar pedido
 exports.criarPedido = async (req, res) => {
   try {

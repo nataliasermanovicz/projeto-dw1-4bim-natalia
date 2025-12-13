@@ -16,25 +16,26 @@ function gerarCpfFicticio() {
 // =======================================================
 // === FUNÇÃO DE LOGIN (POST /verificarSenha) ===
 // =======================================================
+// =======================================================
+// === FUNÇÃO DE LOGIN (POST /verificarSenha) ===
+// =======================================================
 async function realizarLogin() {
   const email = document.getElementById('email').value.trim();
   const senha = document.getElementById('senha').value;
-  // **REMOVIDO: emailRegex restritivo**
 
   if (email === '' || senha.trim() === '') {
     alert('Por favor, preencha o email e a senha.');
     return;
   }
 
-    const dadosLogin = {
-        email: email,
-        senha: senha
-    };
+  const dadosLogin = {
+    email: email,
+    senha: senha
+  };
 
   try {
-    // **CORREÇÃO DE URL:** Chamando a rota correta do loginController.js
     let sql = `${HOST_BACKEND}/login/verificarSenha`;
-    alert(`Enviando dados para: ${sql}`); // Debug temporário
+    // alert(`Enviando dados para: ${sql}`); // Debug temporário (pode comentar se quiser)
 
     const response = await fetch(sql, {
       method: 'POST',
@@ -42,44 +43,62 @@ async function realizarLogin() {
         'Content-Type': 'application/json'
       },
       // CORS Credentials é necessário para enviar cookies
-      credentials: 'include', 
+      credentials: 'include',
       body: JSON.stringify(dadosLogin)
     });
 
     const result = await response.json();
 
     if (response.ok && result.status === 'ok') {
-    // alert de sucesso removido para UX mais limpa
-    console.log(`Login realizado com sucesso! Bem-vindo(a), ${result.nome}.`);
-      
-      // Armazena no localStorage o nome do usuário e talvez o ID,
-      // mas o estado de login é gerenciado pelo cookie do backend.
-      // O backend não retorna o perfil, mantendo a navegação para menu.html
-      // (ajuste o perfil/redirecionamento se o backend for atualizado).
-            // Marca como logado e salva o ID da pessoa retornado pelo backend
-            localStorage.setItem('usuarioLogado', 'true');
-            if (result.idpessoa) {
-                // Salva o ID/CPF da pessoa para uso em pedidos e carrinho
-                localStorage.setItem('clienteIdPessoa', String(result.idpessoa));
-            }
-            // Salva também o perfil, se fornecido
-            if (result.perfil) {
-                localStorage.setItem('perfilUsuario', result.perfil);
-            }
-            // Salva o flag de gerente
-            if (result.ehGerente) {
-                localStorage.setItem('ehGerente', 'true');
-            }
+      console.log(`Login realizado com sucesso! Bem-vindo(a), ${result.nome}.`);
 
-        // Redireciona para a tela apropriada
-        if (result.ehGerente) {
-          // Se é gerente, redireciona para menu especial
-          window.location.href = `${HOST_BACKEND}/frontend-Gerente/menu.html`;
-        } else {
-          // Caso contrário, vai para o menu normal
-          window.location.href = `${HOST_BACKEND}/menu`;
-        }
+      // 1. Marca como logado
+      localStorage.setItem('usuarioLogado', 'true');
+
+      // 2. Salva o ID da pessoa (Mantido para compatibilidade com outras partes do código)
+      if (result.idpessoa) {
+        localStorage.setItem('clienteIdPessoa', String(result.idpessoa));
+      }
+
+      // =================================================================
+      // === CORREÇÃO CRÍTICA PARA O CARRINHO ===
+      // Salva o CPF que o carrinho.js procura para evitar o loop de login.
+      // Agora seu backend envia 'cpfpessoa' explicitamente.
+      // =================================================================
+      const cpfParaSalvar = result.cpfpessoa || result.cpf || result.idpessoa;
       
+      if (cpfParaSalvar) {
+          localStorage.setItem('cpfUsuarioLogado', String(cpfParaSalvar));
+      } else {
+          console.warn("AVISO: O Backend não retornou o CPF. O carrinho pode falhar.");
+      }
+
+      // 3. Salva Perfil e Flag de Gerente
+      if (result.perfil) {
+        localStorage.setItem('perfilUsuario', result.perfil);
+      }
+      if (result.ehGerente) {
+        localStorage.setItem('ehGerente', 'true');
+      }
+
+      // =================================================================
+      // === LÓGICA DE REDIRECIONAMENTO INTELIGENTE ===
+      // Verifica se o usuário veio do carrinho (?redirect=carrinho)
+      // =================================================================
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirectDestino = urlParams.get('redirect');
+
+      if (redirectDestino === 'carrinho') {
+          // Se veio do carrinho, volta para lá imediatamente
+          window.location.href = 'http://localhost:3001/carrinho.html';
+      } else if (result.ehGerente) {
+          // Se é gerente e login normal, vai para menu de gerente
+          window.location.href = `${HOST_BACKEND}/frontend-Gerente/menu.html`;
+      } else {
+          // Usuário comum, vai para o menu padrão
+          window.location.href = `${HOST_BACKEND}/menu`;
+      }
+
     } else if (result.status === 'senha_incorreta') {
       alert('Email ou senha incorretos. Tente novamente.');
     } else {

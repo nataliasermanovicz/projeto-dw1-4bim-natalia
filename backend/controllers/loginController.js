@@ -124,15 +124,18 @@ exports.verificarSenha = async (req, res) => {
 
     console.log("Cookie 'usuarioLogado' definido com sucesso");
 
-    // 4. Retorna dados para o frontend (com as novas chaves idpessoa, perfil e ehGerente)
+    // 4. Retorna dados para o frontend
     return res.json({
       status: 'ok',
       nome: nomepessoa,
-      // 💡 ALTERAÇÃO 1: Retorna o ID da pessoa (CPF), necessário para a compra no frontend
+      
+      // MANTENHA O IDPESSOA (para compatibilidade com outras partes do seu código)
       idpessoa: cpfpessoa, 
-      // 💡 ALTERAÇÃO 2: Retorna o perfil para decisões de navegação/permissão no frontend
+      
+      // ADICIONE ESTA LINHA (para o carrinho.js encontrar o CPF corretamente)
+      cpfpessoa: cpfpessoa,
+      
       perfil: perfil,
-      // 💡 ALTERAÇÃO 3: Retorna se é gerente para redirecionar para menu especial
       ehGerente: ehGerente
     });
 
