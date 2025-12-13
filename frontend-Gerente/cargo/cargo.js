@@ -6,7 +6,7 @@ let operacao = null;
 // Elementos do DOM
 const form = document.getElementById('cargoForm');
 const searchId = document.getElementById('searchId');
-const inputNome = document.getElementById('nomecargo'); // Referência direta ao input de nome
+const inputNome = document.getElementById('nomecargo'); 
 
 const btnBuscar = document.getElementById('btnBuscar');
 const btnIncluir = document.getElementById('btnIncluir');
@@ -37,22 +37,28 @@ bloquearCampos(false);
 // --- FUNÇÕES DE UTILIDADE ---
 
 function mostrarMensagem(texto, tipo = 'info') {
-    messageContainer.innerHTML = `<div class="message ${tipo}">${texto}</div>`;
+    let cor = '#17a2b8'; // Azul (Info) padrão
+    if (tipo === 'success') cor = '#28a745'; // Verde
+    if (tipo === 'error') cor = '#dc3545';   // Vermelho
+    if (tipo === 'warning') cor = '#ffc107'; // Amarelo
+
+    messageContainer.innerHTML = `
+        <div class="message ${tipo}" style="background-color: ${cor}; color: white; padding: 10px; border-radius: 4px; margin-top: 10px; font-weight: bold;">
+            ${texto}
+        </div>
+    `;
+    
     setTimeout(() => {
         messageContainer.innerHTML = '';
-    }, 3000);
+    }, 5000);
 }
 
 function bloquearCampos(isSearchMode) {
-    // Se isSearchMode for TRUE: Bloqueia SearchID, Libera Nome
-    // Se isSearchMode for FALSE: Libera SearchID, Bloqueia Nome
-    
     if (searchId) searchId.disabled = isSearchMode;
     if (inputNome) inputNome.disabled = !isSearchMode;
 }
 
 function limparFormulario() {
-    // Limpa apenas o campo de nome, mantendo o ID se necessário
     if (inputNome) inputNome.value = '';
 }
 
@@ -88,7 +94,7 @@ function renderizarTabelaCargos(cargos) {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>
-                <button class="btn-id" onclick="selecionarCargo(${cargo.idcargo})">
+                <button class="btn-id" style="cursor: pointer; background: #eee; border: 1px solid #ccc; padding: 2px 8px;" onclick="selecionarCargo(${cargo.idcargo})">
                     ${cargo.idcargo}
                 </button>
             </td>
@@ -123,12 +129,12 @@ async function buscarCargo() {
             mostrarBotoes(true, false, true, true, false, false);
             mostrarMensagem('Cargo encontrado!', 'success');
             
-            // Mantém campos bloqueados até clicar em alterar
             bloquearCampos(false); 
 
         } else if (response.status === 404) {
             limparFormulario();
             searchId.value = id; 
+            currentPersonId = null; 
             mostrarBotoes(true, true, false, false, false, false);
             mostrarMensagem('Cargo não encontrado. Pode incluir novo.', 'info');
             bloquearCampos(false);
@@ -143,12 +149,13 @@ function incluirCargo() {
     mostrarMensagem('Preencha os dados e clique em Salvar.', 'success');
     operacao = 'incluir';
     
-    // Configuração visual
-    currentPersonId = searchId.value;
-    limparFormulario(); // Limpa nome
-    // searchId.value mantém o valor
+    // IMPORTANTE: Limpamos o ID para garantir que o backend crie um novo (Auto-Increment)
+    searchId.value = '';
+    currentPersonId = null;
+
+    limparFormulario(); 
     
-    bloquearCampos(true); // Libera nome para edição
+    bloquearCampos(true); 
     mostrarBotoes(false, false, false, false, true, true);
     inputNome.focus();
 }
@@ -157,16 +164,20 @@ function alterarCargo() {
     mostrarMensagem('Edite os dados e clique em Salvar.', 'success');
     operacao = 'alterar';
     
-    bloquearCampos(true); // Libera nome para edição
+    bloquearCampos(true);
     mostrarBotoes(false, false, false, false, true, true);
     inputNome.focus();
 }
 
 function excluirCargo() {
+    if (!currentPersonId) {
+        mostrarMensagem('Primeiro busque um cargo válido para excluir.', 'warning');
+        return;
+    }
+
     mostrarMensagem('Clique em Salvar para confirmar a exclusão.', 'warning');
     operacao = 'excluir';
     
-    // Bloqueia tudo para evitar edição antes de excluir
     searchId.disabled = true;
     inputNome.disabled = true;
     
@@ -181,27 +192,30 @@ function cancelarOperacao() {
     
     mostrarBotoes(true, false, false, false, false, false);
     bloquearCampos(false);
+    searchId.disabled = false; 
     searchId.focus();
     mostrarMensagem('Operação cancelada', 'info');
 }
 
 async function salvarOperacao() {
-    // 1. Captura Segura dos Dados
-    // Pegamos o valor diretamente do elemento inputNome, ignorando FormData
     const valorNome = inputNome.value;
-    const valorId = searchId.value;
+    
+    // Se o campo de busca estiver vazio, mandamos null para o backend entender que é auto-increment
+    const valorId = (searchId.value && searchId.value.trim() !== '') ? searchId.value : null;
 
     console.log(`Tentando salvar: Operação=${operacao}, ID=${valorId}, Nome=${valorNome}`);
 
-    // Validação básica (exceto para excluir)
     if (operacao !== 'excluir' && (!valorNome || valorNome.trim() === '')) {
         mostrarMensagem('O nome do cargo é obrigatório!', 'warning');
         return;
     }
 
-    // 2. Montagem do Objeto JSON
+    // =================================================================
+    // CORREÇÃO AQUI: Alterado de 'idcargo' para 'idCargo' (Case sensitive)
+    // O Backend espera "idCargo" com C maiúsculo.
+    // =================================================================
     const cargoData = {
-        idcargo: valorId,
+        idCargo: valorId,
         nomecargo: valorNome 
     };
 
@@ -230,13 +244,13 @@ async function salvarOperacao() {
         if (response.ok) {
             mostrarMensagem(`Sucesso: ${operacao} realizado!`, 'success');
             
-            // Reset total após sucesso
             searchId.value = '';
             limparFormulario();
             mostrarBotoes(true, false, false, false, false, false);
             bloquearCampos(false);
             carregarCargos();
             operacao = null;
+            currentPersonId = null;
         } else {
             const errorData = await response.json();
             mostrarMensagem(errorData.error || 'Erro na operação', 'error');

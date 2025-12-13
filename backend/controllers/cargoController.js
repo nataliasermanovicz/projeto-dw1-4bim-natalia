@@ -24,32 +24,46 @@ exports.listarCargos = async (req, res) => {
 
 
 exports.criarCargo = async (req, res) => {
-  //  console.log('Criando cargo com dados:', req.body);
   try {
-    const { idCargo, nomecargo} = req.body;
+    const { idCargo, nomecargo } = req.body;
 
-    // Validação básica
+    // Validação
     if (!nomecargo) {
-      return res.status(400).json({
-        error: 'Nome do cargo é obrigatório'
-      });
+      return res.status(400).json({ error: 'Nome do cargo é obrigatório' });
     }
 
-    const result = await query(
-      'INSERT INTO cargo (idCargo, nomecargo) VALUES ($1, $2) RETURNING *',
-      [idCargo, nomecargo]
-    );
+    let result;
+    
+    // VERIFICAÇÃO INTELIGENTE:
+    // Se o ID foi fornecido e não é vazio, fazemos INSERT manual do ID.
+    if (idCargo && String(idCargo).trim() !== '') {
+        console.log(`Criando cargo com ID Manual: ${idCargo}`);
+        result = await query(
+            'INSERT INTO cargo (idCargo, nomecargo) VALUES ($1, $2) RETURNING *',
+            [idCargo, nomecargo]
+        );
+    } else {
+        // Se não tem ID, fazemos INSERT normal e o banco gera o Serial (Auto-Increment)
+        console.log('Criando cargo com ID Automático');
+        result = await query(
+            'INSERT INTO cargo (nomecargo) VALUES ($1) RETURNING *',
+            [nomecargo]
+        );
+    }
 
     res.status(201).json(result.rows[0]);
+
   } catch (error) {
     console.error('Erro ao criar cargo:', error);
 
-
-    // Verifica se é erro de violação de constraint NOT NULL
+    // Erro 23505 = Chave duplicada (se tentar criar um ID que já existe)
+    if (error.code === '23505') {
+        return res.status(400).json({ error: 'Este ID de cargo já existe.' });
+    }
+    
+    // Erro 23502 = Violação de Not Null (geralmente nome vazio ou ID null forçado)
     if (error.code === '23502') {
-      return res.status(400).json({
-        error: 'Dados obrigatórios não fornecidos'
-      });
+      return res.status(400).json({ error: 'Dados obrigatórios não fornecidos pelo sistema.' });
     }
 
     res.status(500).json({ error: 'Erro interno do servidor' });
@@ -119,30 +133,27 @@ exports.atualizarCargo = async (req, res) => {
 exports.deletarCargo = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    // Verifica se a cargo existe
-    const existingPersonResult = await query(
-      'SELECT * FROM cargo WHERE idCargo = $1',
-      [id]
-    );
+    if (isNaN(id)) return res.status(400).json({ error: 'ID inválido' });
 
-    if (existingPersonResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Cargo não encontrada' });
+    // Tenta deletar
+    const result = await query('DELETE FROM cargo WHERE idCargo = $1 RETURNING idCargo', [id]);
+
+    if (result.rows.length === 0) {
+      // Se não retornou linha, é porque o ID não existia
+      return res.status(404).json({ error: 'Cargo não encontrado para exclusão' });
     }
 
-    // Deleta a cargo (as constraints CASCADE cuidarão das dependências)
-    await query(
-      'DELETE FROM cargo WHERE idCargo = $1',
-      [id]
-    );
-
+    // Sucesso (No Content)
     res.status(204).send();
+
   } catch (error) {
     console.error('Erro ao deletar cargo:', error);
 
-    // Verifica se é erro de violação de foreign key (dependências)
+    // TRATAMENTO ESPECÍFICO PARA ERRO DE CHAVE ESTRANGEIRA (FK)
+    // Isso acontece se você tentar apagar um Cargo que tem Funcionários
     if (error.code === '23503') {
       return res.status(400).json({
-        error: 'Não é possível deletar cargo com dependências associadas'
+        error: 'Não é possível excluir este cargo pois existem funcionários vinculados a ele.'
       });
     }
 

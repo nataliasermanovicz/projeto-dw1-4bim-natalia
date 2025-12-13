@@ -254,6 +254,50 @@ footer {
     border-top: 3px solid #a02a4d;
 }
 
+/* ========================================= */
+/* === NOVO ESTILO PARA ALERTAS FLUTUANTES === */
+/* ========================================= */
+
+.message-container {
+    position: fixed;       /* Fixa na tela */
+    top: 20px;            /* Distância do topo */
+    right: 20px;          /* Distância da direita */
+    z-index: 9999;        /* Garante que fique acima de tudo */
+    width: auto;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none; /* Permite clicar através do container vazio */
+}
+
+/* Estilo que será aplicado à div interna gerada pelo JS */
+.message-container .message {
+    pointer-events: auto;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    font-size: 1rem;
+    font-weight: 500;
+    color: #fff;
+    animation: slideIn 0.3s ease-out forwards;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Animação suave de entrada */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
 /* Responsividade */
 @media (max-width: 768px) {
     main {
@@ -271,5 +315,12 @@ footer {
 
     button {
         min-width: auto;
+    }
+
+    /* Ajuste do alerta para mobile */
+    .message-container {
+        left: 20px; /* Centraliza ou estica no mobile */
+        right: 20px;
+        max-width: none;
     }
 }
