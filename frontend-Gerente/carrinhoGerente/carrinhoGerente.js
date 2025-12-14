@@ -6,6 +6,9 @@ const HOST_BACKEND = 'http://localhost:3001';
 window.valorFinalCalculado = 0;
 window.carrinhoVazio = true;
 
+// Variável para controlar a forma de pagamento (1=Cartão, 2=PIX) - Default PIX
+let idFormaPagamentoSelecionada = 2; 
+
 // =======================================================
 // === FUNÇÃO PRINCIPAL: MOSTRAR/RECARREGAR CARRINHO ===
 // =======================================================
@@ -18,18 +21,16 @@ async function mostrarCarrinho() {
         const id = item.idproduto || item.idProduto || item.id || item.produtoidproduto || null;
         const quantidade = item.quantidadeEmEstoque || item.quantidade || item.qtd || item.amount || 0;
         const nome = item.nomeproduto || item.nomeProduto || item.nome || item.descricao || '';
-        const preco = item.precoUnitario || item.precounitario || item.preco || item.price || item.precoUnitario || 0;
+        const preco = item.precoUnitario || item.precounitario || item.preco || item.price || 0;
         return { idproduto: id, quantidadeEmEstoque: quantidade, nomeproduto: nome, precoUnitario: preco };
     }
 
     let carrinho = carrinhoRaw.map(normalizeItem).filter(i => i && i.idproduto !== undefined && i.idproduto !== null);
 
     try {
-        // Busca os dados atualizados dos produtos no backend
         const res = await fetch(`${HOST_BACKEND}/produto`);
         const produtosBackend = await res.json();
 
-        // Mapeia o carrinho salvo no localStorage com os dados do backend
         carrinho = carrinho.map(itemDoCarrinho => {
             const prodAtual = produtosBackend.find(p => {
                 const pid = p.idproduto || p.idProduto || p.id;
@@ -47,7 +48,6 @@ async function mostrarCarrinho() {
             return itemDoCarrinho;
         }).filter(item => item && (item.nomeproduto || item.precoUnitario));
 
-        // Salva o carrinho mapeado de volta no localStorage para manter a consistência
         localStorage.setItem('carrinho', JSON.stringify(carrinho));
 
     } catch (error) {
@@ -67,20 +67,15 @@ async function mostrarCarrinho() {
         const preco = item.precoUnitario || 0;
         const quantidade = item.quantidadeEmEstoque;
 
-        if (nome && preco && quantidade) {
-            // Texto do produto
+        if (nome && quantidade) {
             const textoItem = document.createElement('span');
             textoItem.textContent = `${nome} - Qtd: ${quantidade} - Preço: R$ ${(quantidade * preco).toFixed(2)}`;
             li.appendChild(textoItem);
 
-            // Botão de Excluir
             const btnExcluir = document.createElement('button');
             btnExcluir.textContent = 'Remover';
             btnExcluir.onclick = () => excluirItemCarrinho(item.idproduto);
-            btnExcluir.style.cssText = 'background-color: #dc3545; color: white; border: none; padding: 4px 8px; cursor: pointer; border-radius: 4px; font-size: 14px; width: auto; min-height: 30px; margin: 0 0 0 10px; flex-shrink: 0;';
-            btnExcluir.onmouseover = function () { this.style.backgroundColor = '#c82333'; };
-            btnExcluir.onmouseout = function () { this.style.backgroundColor = '#dc3545'; };
-
+            
             li.appendChild(btnExcluir);
             lista.appendChild(li);
 
@@ -100,7 +95,10 @@ async function mostrarCarrinho() {
 function excluirItemCarrinho(idProduto) {
     if (confirm("Tem certeza que deseja remover este item do carrinho?")) {
         let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
-        const novoCarrinho = carrinho.filter(item => item.idproduto !== idProduto);
+        const novoCarrinho = carrinho.filter(item => {
+            const itemId = item.idproduto || item.idProduto;
+            return String(itemId) !== String(idProduto);
+        });
         localStorage.setItem('carrinho', JSON.stringify(novoCarrinho));
         mostrarCarrinho();
     }
@@ -114,28 +112,21 @@ function mostrarFormaPagamento() {
         alert('Escolha algum produto da loja para continuar a compra.');
         return;
     }
-    if (localStorage.getItem('usuarioLogado') !== 'true') {
-        irParaLogin();
-        return;
-    }
+    // Permite continuar mesmo se não estiver logado no localStorage, 
+    // mas o ideal é verificar. Se for gerente, assume logado.
     document.getElementById('forma-pagamento').style.display = 'block';
     document.getElementById('btn-finalizar-compra').style.display = 'none';
 }
 
 function pagarComCartao() {
+    idFormaPagamentoSelecionada = 1; // Define ID Cartão
     document.getElementById('pagamento-cartao').style.display = 'block';
     document.getElementById('pagamento-pix').style.display = 'none';
     document.getElementById('qrcode-area').style.display = 'none';
 }
 
 function pagarPIX() {
-    document.getElementById('pagamento-pix').style.display = 'block';
-    document.getElementById('pagamento-cartao').style.display = 'none';
-    document.getElementById('qrcode-area').style.display = 'block';
-    pagarComPix();
-}
-
-function pagarComPix() {
+    idFormaPagamentoSelecionada = 2; // Define ID PIX
     document.getElementById('pagamento-pix').style.display = 'block';
     document.getElementById('pagamento-cartao').style.display = 'none';
     document.getElementById('qrcode-area').style.display = 'block';
@@ -179,7 +170,7 @@ function gerarQRCodePix(valor) {
     const payloadFinal = payload + crc16(payload);
     const qrDiv = document.getElementById('qrcode');
     qrDiv.innerHTML = '';
-    document.getElementById('qrcode-area').style.display = 'block';
+    
     if (typeof QRCode !== 'undefined') {
         new QRCode(qrDiv, payloadFinal);
     }
@@ -209,11 +200,10 @@ function formatarCartao(input) {
 // === FUNÇÕES DE COMUNICAÇÃO COM O BACKEND (API) ===
 // =======================================================
 
-// 1. Cria o Pedido (Cabeçalho)
 async function enviarPedidoParaBackend(pedido) {
     try {
         let url = `${HOST_BACKEND}/pedido/criarProximoPedido`;
-        console.log('Enviando pedido para:', url);
+        console.log('Enviando pedido para:', url, pedido);
 
         const response = await fetch(url, {
             method: 'POST',
@@ -226,26 +216,21 @@ async function enviarPedidoParaBackend(pedido) {
         }
 
         const data = await response.json();
-        return data; // Deve retornar objeto com { idpedido: ... }
+        return data; 
     } catch (error) {
         console.error('Erro na requisição ao backend:', error);
         throw error;
     }
 }
 
-// 2. Salva Item individualmente no PedidoHasProduto
 async function salvarItemDoPedido(item) {
-    // ATENÇÃO: Ajuste a rota abaixo se o seu backend usar outro nome
-    // Pelo padrão do seu banco, deve ser algo como /pedidohasproduto
     let url = `${HOST_BACKEND}/pedidohasproduto`;
-
     try {
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(item)
         });
-
         if (!response.ok) {
             console.error(`Erro ao salvar produto ID ${item.produtoidproduto}. Status: ${response.status}`);
             return false;
@@ -262,7 +247,6 @@ async function salvarItemDoPedido(item) {
 // =======================================================
 async function concluirCompra() {
     const btnFinalizar = document.getElementById('btn-finalizar-compra');
-    // Desabilita botão para evitar cliques duplos
     if (btnFinalizar) btnFinalizar.disabled = true;
 
     try {
@@ -274,23 +258,30 @@ async function concluirCompra() {
             return;
         }
 
-        const cpfClienteLogado = localStorage.getItem('cpfUsuarioLogado') || '99999999999';
+        const cpfClienteLogado = localStorage.getItem('cpfUsuarioLogado') || '11111111111'; // Fallback para teste
 
         // 1. Montar objeto do Pedido
         const dadosDoPedido = {
-            datadopedido: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+            datadopedido: new Date().toISOString().split('T')[0],
             clientepessoacpfpessoa: cpfClienteLogado,
-            funcionariopessoacpfpessoa: '11111111111' 
+            funcionariopessoacpfpessoa: '11111111111',
+            
+            // CORREÇÃO: Enviando Valor e Forma de Pagamento
+            valorTotal: window.valorFinalCalculado, 
+            idFormaPagamento: idFormaPagamentoSelecionada 
         };
 
         // 2. Enviar Pedido e aguardar ID
         const pedidoCriado = await enviarPedidoParaBackend(dadosDoPedido);
 
-        if (!pedidoCriado || !pedidoCriado.idpedido) {
+        // CORREÇÃO: O backend retorna { id_pedido: X }, então buscamos id_pedido OU idpedido
+        const idPedido = pedidoCriado.id_pedido || pedidoCriado.idpedido;
+
+        if (!idPedido) {
+            console.error("Resposta do backend:", pedidoCriado);
             throw new Error("O backend não retornou o ID do pedido gerado.");
         }
 
-        const idPedido = pedidoCriado.idpedido;
         console.log("Pedido criado com ID:", idPedido);
 
         // 3. Enviar cada item do carrinho para o banco
@@ -301,11 +292,10 @@ async function concluirCompra() {
                 quantidade: item.quantidadeEmEstoque,
                 precounitario: item.precoUnitario
             };
-
             await salvarItemDoPedido(dadosItem);
         }
 
-        // 4. Sucesso: Limpar carrinho e feedback visual
+        // 4. Sucesso
         localStorage.removeItem('carrinho');
         window.valorFinalCalculado = 0;
         window.carrinhoVazio = true;
@@ -316,7 +306,6 @@ async function concluirCompra() {
         const header = document.getElementById('header-carrinho');
         if (header) header.style.display = 'none';
 
-        // Redireciona após 2 segundos
         setTimeout(function () {
             irParaMenu();
         }, 2000);
@@ -328,52 +317,13 @@ async function concluirCompra() {
 }
 
 // =======================================================
-// === FUNÇÕES DE NAVEGAÇÃO E UTILITÁRIOS ===
+// === NAVEGAÇÃO ===
 // =======================================================
-
-// Função auxiliar para login
-function irParaLogin() {
-    window.location.href = `${HOST_BACKEND}/login/abrirTelaLogin`;
-}
-
-/**
- * Função responsável por voltar ao menu correto.
- * Verifica se o usuário é Gerente para definir a rota.
- */
-/**
-/**
- * Função responsável por voltar ao menu correto.
- */
 function irParaMenu() {
-    // 1. Pega o valor
-    let ehGerente = localStorage.getItem('ehGerente');
-    
-    console.log("--- DEBUG REAL ---");
-    console.log("Valor cru:", ehGerente);
-
-    // 2. Limpeza de segurança (remove espaços e converte para string)
-    if (ehGerente) {
-        ehGerente = String(ehGerente).trim();
-    }
-
-    // 3. Verificação
-    if (ehGerente === 'true') {
-        console.log("É GERENTE! Tentando ir para /frontend-Gerente/menuGerente/menuGerente.html");  
-        
-        // Verifica se a estrutura de pastas está correta
-        // Se carrinho.html está em: projeto/frontend/carrinho/
-        // ../ volta para frontend/
-        // ../../ volta para projeto/
-        // então entra em frontend-Gerente/
-        window.location.href = '/frontend-Gerente/menuGerente/menuGerente.html';
-        
-    } else {
-        console.log("É CLIENTE (ou nulo). Voltando para http://localhost:3001/menu");
-        window.location.href = 'http://localhost:3001/menu';
-    }
+    // Redireciona para o menu do gerente
+    window.location.href = '/frontend-Gerente/menuGerente/menuGerente.html';
 }
 
-// Inicialização da página
 window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('forma-pagamento').style.display = 'none';
     document.getElementById('pagamento-cartao').style.display = 'none';

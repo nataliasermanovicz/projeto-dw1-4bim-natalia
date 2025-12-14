@@ -1,90 +1,96 @@
 // Variável global para armazenar os dados do produto carregado
 let produtoSelecionado = null;
-const HOST_BACKEND = 'http://localhost:3001'; // Define a URL do Backend
 
-/**
- * Função assíncrona para carregar os dados do produto a partir do backend.
- */
+// REMOVIDO: const HOST_BACKEND... (Já existe no context-helper.js)
+// Se o context-helper falhar, usamos um fallback seguro, mas não redeclaramos com const
+const API_URL = (typeof HOST_BACKEND !== 'undefined') ? HOST_BACKEND : 'http://localhost:3001';
+
+// =======================================================
+// === FUNÇÃO DE BUSCA DO PRODUTO ===
+// =======================================================
 async function carregarProdutoBackend() {
-  // Captura o parâmetro 'id' da URL (ex: ?id=5)
   const urlParams = new URLSearchParams(window.location.search);
   const idProduto = parseInt(urlParams.get('id'));
 
-  if (!isNaN(idProduto)) {
-    try {
-      // Faz a requisição para buscar a lista de todos os produtos
-      const res = await fetch(`${HOST_BACKEND}/produto`);
-      const produtos = await res.json();
-
-      // Localiza o produto pelo 'idproduto'
-      produtoSelecionado = produtos.find(prod => prod.idproduto === idProduto);
-
-      if (produtoSelecionado) {
-        // Atualiza os elementos HTML com os dados do produto
-        document.getElementById('nomeProduto').textContent = produtoSelecionado.nomeproduto;
-        // Assume o caminho da imagem relativo ao servidor
-        document.getElementById('imagemProduto').src = `../${produtoSelecionado.imagemproduto}`;
-        
-        // Adiciona a chave precounitario ao objeto selecionado para uso no carrinho
-        // Se o seu backend não retorna o preço na busca de todos os produtos, ajuste aqui
-        produtoSelecionado.precounitario = produtoSelecionado.precounitario || 0;
-        
-        // Exibe o preço formatado em BRL
-        const preco = parseFloat(produtoSelecionado.precounitario || 0);
-        document.getElementById('precoProduto').textContent = preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); 
-
-      } else {
-        alert('Produto não encontrado.');
-        document.getElementById('nomeProduto').textContent = 'Produto Não Encontrado';
-      }
-    } catch (error) {
-      console.error('Erro ao carregar o produto:', error);
-      alert('Erro ao carregar o produto.');
-    }
-  } else {
-    document.getElementById('nomeProduto').textContent = 'ID do Produto Inválido';
+  if (!idProduto || isNaN(idProduto)) {
     alert('ID do produto inválido.');
+    document.getElementById('nomeProduto').textContent = 'Produto não especificado';
+    return;
+  }
+
+  try {
+    // Busca direta pelo ID
+    const res = await fetch(`${API_URL}/produto/${idProduto}`);
+    
+    if (!res.ok) {
+        throw new Error("Produto não encontrado no servidor.");
+    }
+
+    const produto = await res.json();
+    produtoSelecionado = produto;
+
+    // --- TRATAMENTO DE CHAVES (ALIASES) ---
+    const nome = produto.nome_produto || produto.nomeproduto || 'Sem Nome';
+    const preco = parseFloat(produto.preco_unitario || produto.precounitario || 0);
+    const imagem = produto.imagem_produto || produto.imagemproduto || produto.imagemProduto;
+
+    // --- ATUALIZAÇÃO DO DOM ---
+    document.getElementById('nomeProduto').textContent = nome;
+    
+    // Formatação do Preço
+    document.getElementById('precoProduto').textContent = preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+    // Correção do Caminho da Imagem
+    // HTML em: /frontend-Gerente/produtoGerente/
+    // Imagem em: /imgs/ (Raiz) -> Sobe 2 níveis
+    const caminhoImagem = imagem ? `../../${imagem}` : '../../imgs/placeholder.png';
+    document.getElementById('imagemProduto').src = caminhoImagem;
+
+  } catch (error) {
+    console.error('Erro ao carregar o produto:', error);
+    document.getElementById('nomeProduto').textContent = 'Erro ao carregar';
   }
 }
 
-/**
- * Função para adicionar o produto e a quantidade selecionada ao localStorage (carrinho).
- */
+// =======================================================
+// === FUNÇÃO DE CARRINHO ===
+// =======================================================
 function adicionarCarrinho() {
   if (!produtoSelecionado) {
-    alert("Nenhum produto está carregado. Não é possível adicionar ao carrinho.");
+    alert("Aguarde o carregamento do produto.");
     return;
   }
   
-  const quantidadeEmEstoque = parseInt(document.getElementById('quantidadeEmEstoque').value);
+  const qtdInput = document.getElementById('quantidadeEmEstoque');
+  const quantidade = parseInt(qtdInput.value);
   
-  if (!quantidadeEmEstoque || quantidadeEmEstoque <= 0) {
-    alert('Por favor, selecione uma quantidade válida (mínimo 1).');
+  if (!quantidade || quantidade <= 0) {
+    alert('Selecione uma quantidade válida (mínimo 1).');
     return;
   }
 
   let carrinho = JSON.parse(localStorage.getItem('carrinho')) || [];
   
-  // Verifica se o item já existe no carrinho
-  const itemExistente = carrinho.find(item => item.idproduto === produtoSelecionado.idproduto);
+  // Normaliza IDs
+  const idAtual = produtoSelecionado.id_produto || produtoSelecionado.idproduto;
+  
+  const itemExistente = carrinho.find(item => {
+      const itemId = item.idproduto || item.idProduto;
+      return String(itemId) === String(idAtual);
+  });
 
   if (itemExistente) {
-    // Se existir, aumenta a quantidade
-    itemExistente.quantidadeEmEstoque += quantidadeEmEstoque;
+    if(itemExistente.quantidadeEmEstoque) itemExistente.quantidadeEmEstoque += quantidade;
+    else itemExistente.quantidade += quantidade;
   } else {
-    // Se não existir, adiciona o novo item com os dados do produto e a quantidade
     carrinho.push({ 
-        // Campos essenciais para o carrinho
-        idproduto: produtoSelecionado.idproduto, 
-        quantidadeEmEstoque: quantidadeEmEstoque,
-        
-        // Incluindo campos extras para renderização rápida no carrinho (opcional)
-        nomeproduto: produtoSelecionado.nomeproduto, 
-        precounitario: produtoSelecionado.precounitario
+        idproduto: idAtual, 
+        quantidadeEmEstoque: quantidade,
+        nomeproduto: produtoSelecionado.nome_produto || produtoSelecionado.nomeproduto, 
+        precoUnitario: parseFloat(produtoSelecionado.preco_unitario || produtoSelecionado.precounitario)
     });
   }
 
-  // Salva o carrinho atualizado
   localStorage.setItem('carrinho', JSON.stringify(carrinho));
   alert('Produto adicionado ao carrinho!');
 }
@@ -93,8 +99,10 @@ function adicionarCarrinho() {
 // === INICIALIZAÇÃO ===
 // =======================================================
 
-// Carrega o produto assim que a página estiver pronta
 window.addEventListener('DOMContentLoaded', carregarProdutoBackend);
 
 // Expõe a função para que o botão no HTML possa chamá-la
 window.adicionarCarrinho = adicionarCarrinho;
+
+// OBS: As funções irParaMenu e irParaCarrinho NÃO são redefinidas aqui
+// porque elas já são carregadas pelo context-helper.js no HTML.
