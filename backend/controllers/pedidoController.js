@@ -203,9 +203,30 @@ exports.atualizarPedido = async (req, res) => {
 // Deletar pedido
 exports.deletarPedido = async (req, res) => {
   try {
-    const id = req.params.id;
+    const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: 'ID inválido' });
 
+    // =========================================================================
+    // LIMPEZA EM CASCATA MANUAL
+    // Antes de deletar o pedido, deletamos tudo que depende dele.
+    // =========================================================================
+
+    // 1. Deletar PagamentoHasFormaPagamento (Filha de Pagamento)
+    // Precisamos achar o pagamento primeiro para deletar suas formas
+    await query(`
+        DELETE FROM PagamentoHasFormaPagamento 
+        WHERE PagamentoIdPedido IN (SELECT PedidoIdPedido FROM Pagamento WHERE PedidoIdPedido = $1)
+    `, [id]);
+
+    // 2. Deletar Pagamento (Filha de Pedido)
+    await query('DELETE FROM Pagamento WHERE PedidoIdPedido = $1', [id]);
+
+    // 3. Deletar Itens do Pedido (Filha de Pedido - caso tenha sobrado algum)
+    await query('DELETE FROM PedidoHasProduto WHERE PedidoIdPedido = $1', [id]);
+
+    // =========================================================================
+    // DELETAR O PEDIDO (Agora está livre)
+    // =========================================================================
     const result = await query('DELETE FROM pedido WHERE idpedido = $1 RETURNING idpedido', [id]);
 
     if (result.rows.length === 0) {
@@ -216,7 +237,7 @@ exports.deletarPedido = async (req, res) => {
   } catch (error) {
     console.error('Erro ao deletar pedido:', error);
     if (error.code === '23503') {
-      return res.status(400).json({ error: 'Não é possível deletar pedido com itens associados' });
+      return res.status(400).json({ error: 'Não é possível deletar este pedido pois ainda existem registros dependentes.' });
     }
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
