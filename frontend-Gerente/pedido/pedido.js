@@ -201,15 +201,24 @@ async function excluirPedido() {
 async function salvarOperacao() {
     console.log('Operação:', operacao);
 
-    // CORREÇÃO: Pegando valores diretamente pelos IDs para garantir compatibilidade
+    // Captura os valores dos inputs
+    const valorId = searchId.value;
+    const valorData = document.getElementById('data_pedido').value;
+    const valorCliente = document.getElementById('cliente_pessoa_cpf_pessoa').value;
+    const valorFuncionario = document.getElementById('funcionario_pessoa_cpf_pessoa').value;
+
+    // ==================================================================
+    // CORREÇÃO: Tratamento de Campos Vazios -> NULL
+    // Se enviar string vazia "", o banco recusa (Erro FK). Tem que ser null.
+    // ==================================================================
     const pedido = {
-        id_pedido: searchId.value,
-        data_pedido: document.getElementById('data_pedido').value,
-        cliente_pessoa_cpf_pessoa: document.getElementById('cliente_pessoa_cpf_pessoa').value,
-        funcionario_pessoa_cpf_pessoa: document.getElementById('funcionario_pessoa_cpf_pessoa').value,
+        id_pedido: valorId,
+        data_pedido: valorData,
+        cliente_pessoa_cpf_pessoa: valorCliente === '' ? null : valorCliente,
+        funcionario_pessoa_cpf_pessoa: valorFuncionario === '' ? null : valorFuncionario
     };
 
-    console.log(pedido);
+    console.log("Enviando payload:", pedido);
 
     let response = null;
     try {
@@ -253,7 +262,9 @@ async function salvarOperacao() {
 
         } else {
             const error = await response.json();
-            mostrarMensagem(error.error || 'Erro na operação', 'error');
+            // Mostra o erro detalhado vindo do backend se houver
+            mostrarMensagem(error.error || error.message || 'Erro na operação', 'error');
+            console.error('Erro backend:', error);
         }
     } catch (error) {
         console.error('Erro:', error);

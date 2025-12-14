@@ -59,19 +59,31 @@ exports.criarProduto = async (req, res) => {
 
 exports.obterProduto = async (req, res) => {
   try {
-    const id = req.params.id; // ID é string
+    const id = req.params.id;
 
     if (!id) {
       return res.status(400).json({ error: 'ID é obrigatório' });
     }
 
-    const result = await query(
-      'SELECT * FROM produto WHERE idProduto = $1',
-      [id]
-    );
+    // =================================================================
+    // CORREÇÃO: Usando ALIAS (AS) para bater com o frontend (pedido.js)
+    // frontend espera: id_produto, nome_produto, preco_unitario
+    // =================================================================
+    const querySQL = `
+        SELECT 
+            idProduto AS id_produto,
+            nomeProduto AS nome_produto,
+            quantidadeEmEstoque AS quantidade_em_estoque,
+            precoUnitario AS preco_unitario,
+            imagemProduto AS imagem_produto
+        FROM produto 
+        WHERE idProduto = $1
+    `;
+
+    const result = await query(querySQL, [id]);
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Produto não encontrada' });
+      return res.status(404).json({ error: 'Produto não encontrado' });
     }
 
     res.json(result.rows[0]);

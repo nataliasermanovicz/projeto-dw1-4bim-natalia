@@ -6,6 +6,7 @@
     <title>CRUD - Pedido</title>
     <link rel="stylesheet" href="/frontend-Gerente/pedido/pedido.css">
     <link rel="stylesheet" href="/frontend-Gerente/css/menu.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 
 <body>
@@ -38,14 +39,12 @@
                         <input type="date" id="data_pedido" name="data_pedido" required>
 
                         <div class="search-bar-container">
-                            <label>Cliente (CPF):</label>
-                            <div style="display: flex; gap: 5px;">
-                                <select id="searchType" class="search-select">
-                                    <option value="cpf">CPF</option>
-                                    <option value="nome">Nome</option>
-                                </select>
+                            <label for="cliente_pessoa_cpf_pessoa">Cliente (CPF):</label>
+                            <div style="display: flex; gap: 5px; position: relative;">
                                 <input type="text" id="cliente_pessoa_cpf_pessoa" name="cliente_pessoa_cpf_pessoa"
-                                    placeholder="CPF cliente..." onfocus="buscaDinamica()">
+                                    placeholder="Digite o CPF do cliente..." 
+                                    onfocus="buscaDinamica()"
+                                    autocomplete="off">
                             </div>
                             <ul id="resultsList" class="results-list"></ul>
                         </div>
@@ -110,6 +109,7 @@
 
     <div id="messageContainer" class="message-container"></div>
     <script src="/frontend-Gerente/pedido/pedido.js"></script>
+    
     <script src="/frontend-Gerente/pedido/pesquisaDinamicaCliente.js"></script>
 
 </body>
