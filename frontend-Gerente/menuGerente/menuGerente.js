@@ -80,8 +80,11 @@ async function carregarProdutos() {
       const article = document.createElement('article');
       article.className = 'produto';
 
-let imagemPath = prod.imagemproduto || prod.imagemProduto; // Tenta os dois casos
-let oSrc = imagemPath ? `../../${imagemPath}` : '../../imgs/placeholder.png';      const precoVal = getField(prod, ['precoUnitario', 'precounitario', 'preco', 'price']);
+      let imagemPath = prod.imagemproduto || prod.imagemProduto; 
+      // Sobe 2 niveis para achar a pasta imgs na raiz
+      let oSrc = imagemPath ? `../../${imagemPath}` : '../../imgs/placeholder.png';
+      
+      const precoVal = getField(prod, ['precoUnitario', 'precounitario', 'preco', 'price']);
       const nome = getField(prod, ['nomeProduto', 'nomeproduto', 'nome']) || 'Produto';
       const id = getField(prod, ['idProduto', 'idproduto', 'id']);
 
@@ -102,31 +105,38 @@ let oSrc = imagemPath ? `../../${imagemPath}` : '../../imgs/placeholder.png';   
 }
 
 /**
- * Redireciona para detalhes (precisa estar no window pois é chamado via string HTML)
+ * Redireciona para detalhes
  */
 window.irParaProduto = function(id) {
   if(!id) return;
-  // Ajuste o caminho conforme necessário
-window.location.href = `/frontend-Gerente/produtoGerente/produtoGerente.html?id=${id}`;};
+  window.location.href = `/frontend-Gerente/produtoGerente/produtoGerente.html?id=${id}`;
+};
 
 /**
  * Faz Logout
  */
 function logout() {
   localStorage.clear();
-  // CORREÇÃO: Usa a URL do backend + rota /menu
   window.location.href = `${HOST_BACKEND}/menu`;
 }
-window.logout = logout; // Expondo globalmente para usar no HTML se precisar
+window.logout = logout; 
 
 /**
  * Botão Ver Carrinho
  */
 function irParaCarrinho() {
-    // Se tiver a função global definida em outro arquivo, usa ela, senão redireciona
     window.location.href = '/frontend-Gerente/carrinhoGerente/carrinhoGerente.html';  
 }
 window.irParaCarrinho = irParaCarrinho;
+
+/**
+ * NOVO: Botão Meus Pedidos
+ */
+function irParaMeusPedidos() {
+    // Redireciona para a página de histórico de pedidos do gerente
+    window.location.href = '/frontend-Gerente/carrinhoGerente/registroPedidosGerente.html';
+}
+window.irParaMeusPedidos = irParaMeusPedidos;
 
 
 // =======================================================
@@ -142,7 +152,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (usuarioLogado !== 'true' || ehGerente !== 'true') {
     alert("Acesso negado. Redirecionando...");
-    // Tenta redirecionar para o menu principal via backend se falhar a segurança
     window.location.href = `${HOST_BACKEND}/menu`;
     return;
   }
@@ -166,6 +175,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnCarrinho = document.getElementById('btn-carrinho');
   if (btnCarrinho) {
       btnCarrinho.addEventListener('click', irParaCarrinho);
+  }
+  // NOVO LISTENER
+  const btnPedidos = document.getElementById('btn-meus-pedidos');
+  if (btnPedidos) {
+      btnPedidos.addEventListener('click', irParaMeusPedidos);
   }
 
   // 4. Gerenciar ícone de login/perfil
