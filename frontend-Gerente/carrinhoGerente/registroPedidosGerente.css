@@ -1,0 +1,332 @@
+/* ======================================================= */
+/* 0. GERAL E FONTES */
+/* ======================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f8f9fa; /* Off-white muito suave */
+    color: #333;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+h1, h2, h3, h4 {
+    font-weight: 600;
+    color: #8B1E3F;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* ======================================================= */
+/* 1. CABEÇALHO (Estilo Sofisticado) */
+/* ======================================================= */
+.top-bar {
+    background-color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 3rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 3px solid #8B1E3F; /* Detalhe da marca */
+}
+
+.top-bar h1 {
+    font-size: 1.5rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+/* Botões do Header */
+.top-right-buttons button {
+    background-color: transparent;
+    color: #555;
+    border: 1px solid #ddd;
+    padding: 8px 20px;
+    border-radius: 50px; /* Arredondado elegante */
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    margin-left: 10px;
+}
+
+.top-right-buttons button:hover {
+    border-color: #8B1E3F;
+    color: #8B1E3F;
+    background-color: #fff;
+    box-shadow: 0 4px 12px rgba(139, 30, 63, 0.1);
+}
+
+/* Ícone de perfil */
+.perfil-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: #f0f0f0;
+    border-radius: 50%;
+    color: #8B1E3F;
+    margin-left: 15px;
+    transition: 0.3s;
+}
+
+.perfil-icon:hover {
+    background-color: #e0e0e0;
+}
+
+/* ======================================================= */
+/* 2. CONTAINER PRINCIPAL */
+/* ======================================================= */
+main {
+    flex: 1;
+    max-width: 900px;
+    width: 100%;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+/* Mensagens de Carregamento/Erro */
+.loading-msg, .aviso-centro {
+    text-align: center;
+    color: #666;
+    font-size: 1.1rem;
+    margin-top: 50px;
+    background: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.btn-login-link {
+    display: inline-block;
+    margin-top: 15px;
+    color: #8B1E3F;
+    font-weight: 700;
+    border-bottom: 2px solid transparent;
+    transition: 0.3s;
+}
+
+.btn-login-link:hover {
+    border-bottom-color: #8B1E3F;
+}
+
+/* ======================================================= */
+/* 3. CARTÃO DE PEDIDO (Pedido Card) */
+/* ======================================================= */
+.pedido-card {
+    background-color: #fff;
+    border-radius: 16px;
+    /* Sombra difusa e elegante */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06); 
+    margin-bottom: 30px;
+    overflow: hidden;
+    border: 1px solid #f0f0f0;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: slideUp 0.5s ease-out;
+}
+
+.pedido-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+}
+
+/* Cabeçalho do Card (ID e Data) */
+.pedido-header {
+    background-color: #fff;
+    padding: 20px 30px;
+    border-bottom: 1px solid #f5f5f5;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pedido-id {
+    font-weight: 700;
+    color: #8B1E3F;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.pedido-data {
+    color: #888;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Corpo do Card */
+.pedido-body {
+    padding: 25px 30px;
+}
+
+/* Linha de Status */
+.info-linha {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.info-linha .label {
+    font-weight: 500;
+    color: #555;
+}
+
+/* Badges de Status (Pílulas) */
+.badge-pagamento {
+    background-color: #e6f9ed; /* Fundo verde claro */
+    color: #28a745; /* Verde texto */
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.badge-pendente {
+    background-color: #fff8e1; /* Fundo amarelo claro */
+    color: #f0ad4e; /* Laranja texto */
+    padding: 6px 14px;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Lista de Itens dentro do Card */
+.itens-container {
+    background-color: #fafafa;
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid #eee;
+}
+
+.titulo-itens {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    color: #999;
+    font-weight: 700;
+    margin-bottom: 15px;
+    letter-spacing: 1px;
+}
+
+.item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px dashed #e0e0e0;
+    font-size: 0.95rem;
+}
+
+.item-row:last-child {
+    border-bottom: none;
+}
+
+.item-qtd {
+    color: #8B1E3F;
+    font-weight: 600;
+    width: 40px;
+}
+
+.item-nome {
+    flex: 1;
+    color: #333;
+    font-weight: 500;
+}
+
+.item-preco {
+    color: #555;
+    font-weight: 600;
+}
+
+/* Rodapé do Card (Forma de Pgto e Total) */
+.pedido-footer {
+    padding: 20px 30px;
+    background-color: #fff;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.metodo-pg {
+    color: #666;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.total-container {
+    text-align: right;
+}
+
+.total-label {
+    display: block;
+    font-size: 0.8rem;
+    color: #888;
+    text-transform: uppercase;
+}
+
+.total-valor {
+    color: #8B1E3F;
+    font-size: 1.4rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+/* ======================================================= */
+/* 4. ANIMAÇÕES E RESPONSIVIDADE */
+/* ======================================================= */
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+    .top-bar {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    main {
+        padding: 20px 15px;
+    }
+
+    .pedido-card {
+        padding: 0;
+    }
+
+    .pedido-header, .pedido-body, .pedido-footer {
+        padding: 20px;
+    }
+
+    .pedido-footer {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+    
+    .total-container {
+        align-self: flex-end;
+    }
+}

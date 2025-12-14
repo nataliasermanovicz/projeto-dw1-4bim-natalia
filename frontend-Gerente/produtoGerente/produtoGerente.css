@@ -1,0 +1,234 @@
+/* ======================================================= */
+/* 0. GERAL E FONTES */
+/* ======================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f8f9fa; /* Off-white suave */
+    color: #333;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ======================================================= */
+/* 1. CABEÇALHO (Top Bar) */
+/* ======================================================= */
+.top-bar {
+    background-color: #fff;
+    display: flex;
+    justify-content: flex-end; /* Botões à direita */
+    align-items: center;
+    padding: 1rem 3rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 3px solid #8B1E3F;
+}
+
+.top-right-buttons {
+    display: flex;
+    gap: 15px;
+}
+
+.top-right-buttons button {
+    background-color: transparent;
+    color: #555;
+    border: 1px solid #ddd;
+    padding: 8px 20px;
+    border-radius: 50px; /* Arredondado elegante */
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    font-family: 'Poppins', sans-serif;
+}
+
+.top-right-buttons button:hover {
+    border-color: #8B1E3F;
+    color: #8B1E3F;
+    background-color: #fff;
+    box-shadow: 0 4px 12px rgba(139, 30, 63, 0.1);
+}
+
+/* ======================================================= */
+/* 2. CARD DO PRODUTO */
+/* ======================================================= */
+#pagina-produto {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    
+    background-color: #fff;
+    width: 100%;
+    max-width: 500px;
+    margin: 40px auto; /* Centraliza na tela */
+    padding: 40px;
+    
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); /* Sombra difusa */
+    position: relative;
+    overflow: hidden;
+    animation: slideUp 0.5s ease-out;
+}
+
+/* Detalhe visual Dourado/Bordô no topo (Identidade Gerente) */
+#pagina-produto::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 6px;
+    background: linear-gradient(90deg, #8B1E3F 0%, #D4AF37 100%);
+}
+
+/* Título do Produto */
+#nomeProduto {
+    font-size: 1.8rem;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: 600;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+    width: 100%;
+}
+
+/* Imagem */
+#imagemProduto {
+    border-radius: 8px;
+    transition: transform 0.3s ease;
+    margin-bottom: 10px;
+}
+
+#imagemProduto:hover {
+    transform: scale(1.02);
+}
+
+/* Preço */
+#preco-container {
+    margin: 25px 0 !important; /* Forçando margem do inline style */
+}
+
+#precoProduto {
+    font-size: 2.2rem;
+    color: #8B1E3F;
+    font-weight: 700;
+    letter-spacing: -1px;
+}
+
+/* ======================================================= */
+/* 3. CONTROLES (Input e Botão) */
+/* ======================================================= */
+
+/* Linha da quantidade */
+.quantidadeEmEstoque-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 30px;
+    width: 100%;
+    background-color: #fafafa;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+}
+
+.quantidadeEmEstoque-row label {
+    font-weight: 500;
+    color: #555;
+    font-size: 1rem;
+}
+
+.quantidadeEmEstoque-row input {
+    width: 80px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1.1rem;
+    text-align: center;
+    color: #333;
+    outline: none;
+    transition: border 0.3s;
+}
+
+.quantidadeEmEstoque-row input:focus {
+    border-color: #8B1E3F;
+    box-shadow: 0 0 0 3px rgba(139, 30, 63, 0.1);
+}
+
+/* Botão Principal */
+.botoes-produto {
+    width: 100%;
+    text-align: center;
+}
+
+.botoes-produto button {
+    background-color: #8B1E3F;
+    color: #fff;
+    border: none;
+    padding: 16px 32px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(139, 30, 63, 0.3);
+}
+
+.botoes-produto button:hover {
+    background-color: #68152e;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(139, 30, 63, 0.4);
+}
+
+/* ======================================================= */
+/* 4. ANIMAÇÕES E RESPONSIVIDADE */
+/* ======================================================= */
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 600px) {
+    .top-bar {
+        padding: 1rem;
+        justify-content: center;
+    }
+    
+    .top-right-buttons {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    #pagina-produto {
+        padding: 25px;
+        margin: 20px;
+        width: auto;
+    }
+
+    #nomeProduto {
+        font-size: 1.5rem;
+    }
+
+    #imagemProduto {
+        width: 100% !important; /* Sobrescreve inline style para mobile */
+        height: auto !important;
+    }
+}

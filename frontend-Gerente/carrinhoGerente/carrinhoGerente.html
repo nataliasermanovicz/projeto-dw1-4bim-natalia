@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Carrinho - Gerente</title>
+  
+  <link rel="stylesheet" href="/frontend-Gerente/carrinhoGerente/carrinhoGerente.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+</head>
+<body onload="mostrarCarrinho()">
+
+  <header class="top-bar" id="header-carrinho">
+    <h1>🛒 Carrinho (Visão Gerente)</h1>
+    <div class="top-right-buttons">
+      <button onclick="irParaMenu()">Voltar ao Menu</button>
+    </div>
+  </header>
+
+  <main>
+      <section id="pagina-carrinho" style="display: none;">
+        <h2>Resumo do Pedido</h2>
+        
+        <ul id="lista-carrinho"></ul>
+        
+        <h3>Total: R$ <span id="total"></span></h3>
+        
+        <div class="botoes-carrinho-centro">
+          <button id="btn-finalizar-compra" onclick="mostrarFormaPagamento()">Finalizar Compra</button>
+        </div>
+
+        <section id="forma-pagamento" style="display: none;">
+          <h4>Escolha a forma de pagamento:</h4>
+          <div class="botoes-pagamento-coluna">
+            <button onclick="pagarComCartao()">💳 Pagar com Cartão</button>
+            <button onclick="pagarPIX()">✨ Pagar com PIX</button>
+          </div>
+        </section>
+
+        <section id="pagamento-cartao" style="display: none;">
+          <h4>Pagamento com Cartão</h4>
+          <div class="cartao-container">
+            <input type="text" id="numero-cartao" placeholder="Número do cartão" maxlength="19" oninput="formatarCartao(this)" inputmode="numeric">
+            <button onclick="finalizarCompraCartao()" class="btn-pagamento-finalizar">Confirmar Pagamento</button>
+          </div>
+        </section>
+
+        <section id="pagamento-pix" style="display: none;"></section>
+
+        <section id="qrcode-area" class="qrcode-area" style="display: none;">
+          <span class="qr-title">Escaneie o QR Code para pagar</span>
+          <div id="qrcode"></div>
+          <button onclick="finalizarCompraPix()" class="btn-pagamento-finalizar">Confirmar Pagamento</button>
+        </section>
+      </section>
+
+      <section id="mensagem-final" style="display: none;">
+        <h2>✅ Compra finalizada com sucesso!</h2>
+        <p>Redirecionando...</p>
+      </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+  
+  <script src="/frontend-Gerente/carrinhoGerente/carrinhoGerente.js"></script> 
+
+  <script>
+    // Função de navegação específica para o gerente
+    window.irParaMenu = function() {
+        window.location.href = '/frontend-Gerente/menuGerente/menuGerente.html';
+    };
+  </script>
+
+</body>
+</html>

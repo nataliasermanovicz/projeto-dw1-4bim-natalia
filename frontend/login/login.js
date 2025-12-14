@@ -69,7 +69,7 @@ async function realizarLogin() {
           window.location.href = 'http://localhost:3001/carrinho.html';
       } else if (result.ehGerente) {
           // Se é gerente, menu de gerente
-          window.location.href = `${HOST_BACKEND}/frontend-Gerente/menu.html`;
+          window.location.href = `${HOST_BACKEND}/frontend-Gerente/menuGerente/menuGerente.html`; 
       } else {
           // Usuário comum, menu padrão
           window.location.href = `${HOST_BACKEND}/menu`;

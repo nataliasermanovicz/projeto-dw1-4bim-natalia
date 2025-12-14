@@ -1,0 +1,391 @@
+/* ======================================================= */
+/* 0. GERAL E FONTES */
+/* ======================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f8f9fa; /* Off-white muito suave */
+    color: #333;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+h1, h2, h3, h4 {
+    font-weight: 600;
+    color: #8B1E3F; /* Cor original */
+}
+
+/* ======================================================= */
+/* 1. CABEÇALHO (Sofisticado) */
+/* ======================================================= */
+.top-bar {
+    background-color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 3rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); /* Sombra suave */
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.top-bar h1 {
+    font-size: 1.4rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+.top-right-buttons button {
+    background-color: transparent;
+    color: #8B1E3F;
+    border: 1px solid #8B1E3F;
+    padding: 8px 20px;
+    border-radius: 50px; /* Botão arredondado elegante */
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.top-right-buttons button:hover {
+    background-color: #8B1E3F;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(139, 30, 63, 0.3);
+}
+
+/* ======================================================= */
+/* 2. CONTAINER PRINCIPAL (Centralizado) */
+/* ======================================================= */
+main {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Centraliza verticalmente também */
+    padding: 40px 20px;
+}
+
+#pagina-carrinho {
+    width: 100%;
+    max-width: 550px; /* Largura contida para elegância */
+    background-color: #fff;
+    padding: 50px 40px;
+    border-radius: 16px;
+    /* Sombra sofisticada difusa */
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); 
+    position: relative;
+    overflow: hidden;
+}
+
+/* Detalhe visual para identificar Gerente */
+#pagina-carrinho::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 6px;
+    background: linear-gradient(90deg, #8B1E3F 0%, #D4AF37 100%); /* Bordô para Dourado */
+}
+
+#pagina-carrinho h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 1.8rem;
+    color: #2c3e50;
+    position: relative;
+    padding-bottom: 15px;
+}
+
+#pagina-carrinho h2::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 3px;
+    background-color: #8B1E3F;
+    margin: 10px auto 0;
+    border-radius: 2px;
+}
+
+/* ======================================================= */
+/* 3. LISTA E TOTAIS */
+/* ======================================================= */
+#lista-carrinho {
+    list-style: none;
+    margin-bottom: 30px;
+    border-top: 1px solid #f0f0f0;
+}
+
+#lista-carrinho li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 0;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 1rem;
+    transition: background 0.2s;
+}
+
+#lista-carrinho li span {
+    flex: 1;
+    padding-right: 15px;
+    color: #555;
+    font-weight: 500;
+}
+
+/* Botão Remover (Discreto e elegante) */
+#lista-carrinho li button {
+    background-color: #fff;
+    color: #dc3545;
+    border: 1px solid #dc3545;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+#lista-carrinho li button:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* Total */
+#pagina-carrinho h3 {
+    text-align: right;
+    font-size: 1.4rem;
+    margin-top: 10px;
+    margin-bottom: 40px;
+    color: #333;
+    font-weight: 400;
+}
+
+#pagina-carrinho h3 span {
+    font-weight: 700;
+    color: #8B1E3F;
+    font-size: 1.6rem;
+}
+
+/* ======================================================= */
+/* 4. BOTÕES E AÇÕES */
+/* ======================================================= */
+.botoes-carrinho-centro {
+    text-align: center;
+}
+
+/* Botão Principal (Finalizar) */
+#btn-finalizar-compra {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #8B1E3F 0%, #68152e 100%); /* Gradiente sutil */
+    color: white;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(139, 30, 63, 0.3);
+    transition: all 0.3s ease;
+}
+
+#btn-finalizar-compra:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(139, 30, 63, 0.4);
+}
+
+/* Seção Escolha Pagamento */
+#forma-pagamento {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 2px dashed #f0f0f0;
+    text-align: center;
+    animation: slideDown 0.4s ease-out;
+}
+
+#forma-pagamento h4 {
+    margin-bottom: 20px;
+    color: #666;
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.botoes-pagamento-coluna {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.botoes-pagamento-coluna button {
+    padding: 14px;
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    color: #555;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.botoes-pagamento-coluna button:hover {
+    border-color: #8B1E3F;
+    color: #8B1E3F;
+    background-color: #fff9fa;
+}
+
+/* ======================================================= */
+/* 5. ÁREAS DE PAGAMENTO (Cartão e PIX) */
+/* ======================================================= */
+#pagamento-cartao, #qrcode-area {
+    margin-top: 25px;
+    padding: 30px;
+    background: #fafafa;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid #eee;
+    animation: fadeIn 0.5s ease;
+}
+
+#pagamento-cartao h4 {
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+/* Input Cartão */
+.cartao-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+#numero-cartao {
+    width: 100%;
+    max-width: 320px;
+    padding: 14px;
+    font-size: 1.1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    text-align: center;
+    letter-spacing: 2px;
+    background-color: #fff;
+    transition: border-color 0.3s;
+}
+
+#numero-cartao:focus {
+    outline: none;
+    border-color: #8B1E3F;
+    box-shadow: 0 0 0 3px rgba(139, 30, 63, 0.1);
+}
+
+/* QR Code */
+#qrcode {
+    margin: 15px auto;
+    padding: 15px;
+    background: white;
+    display: inline-block;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.qr-title {
+    font-size: 1rem;
+    color: #666;
+    display: block;
+    margin-bottom: 10px;
+}
+
+/* Botão Confirmar Final (Dentro das áreas de pagamento) */
+.btn-pagamento-finalizar {
+    background-color: #8B1E3F; /* Vermelho original */
+    color: white;
+    border: none;
+    padding: 14px 40px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 20px;
+    width: 100%;
+    transition: background-color 0.3s;
+}
+
+.btn-pagamento-finalizar:hover {
+    background-color: #68152e;
+}
+
+/* Mensagem Final */
+#mensagem-final {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+#mensagem-final h2 {
+    color: #8B1E3F;
+    font-size: 2.2rem;
+    margin-bottom: 15px;
+}
+
+#mensagem-final p {
+    color: #666;
+    font-size: 1.1rem;
+}
+
+/* Animações */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsivo */
+@media (max-width: 600px) {
+    .top-bar {
+        padding: 1rem;
+        justify-content: center;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    #pagina-carrinho {
+        padding: 30px 20px;
+        margin-top: 0;
+        box-shadow: none; /* Mais limpo no mobile */
+    }
+
+    #lista-carrinho li {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    #lista-carrinho li button {
+        width: 100%;
+        margin-top: 5px;
+    }
+}

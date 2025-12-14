@@ -358,18 +358,18 @@ function irParaMenu() {
 
     // 3. Verificação
     if (ehGerente === 'true') {
-        console.log("É GERENTE! Tentando ir para ../../frontend-Gerente/menu.html");
+        console.log("É GERENTE! Tentando ir para /frontend-Gerente/menuGerente/menuGerente.html");  
         
         // Verifica se a estrutura de pastas está correta
         // Se carrinho.html está em: projeto/frontend/carrinho/
         // ../ volta para frontend/
         // ../../ volta para projeto/
         // então entra em frontend-Gerente/
-        window.location.href = '../../frontend-Gerente/menu.html';
+        window.location.href = '/frontend-Gerente/menuGerente/menuGerente.html';
         
     } else {
-        console.log("É CLIENTE (ou nulo). Voltando para ../menu.html");
-        window.location.href = '../menu.html';
+        console.log("É CLIENTE (ou nulo). Voltando para http://localhost:3001/menu");
+        window.location.href = 'http://localhost:3001/menu';
     }
 }
 

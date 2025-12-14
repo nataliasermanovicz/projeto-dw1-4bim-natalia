@@ -80,8 +80,8 @@ async function carregarProdutos() {
       const article = document.createElement('article');
       article.className = 'produto';
 
-      let oSrc = prod.imagemproduto ? `../${prod.imagemproduto}` : '../imgs/placeholder.png';
-      const precoVal = getField(prod, ['precoUnitario', 'precounitario', 'preco', 'price']);
+let imagemPath = prod.imagemproduto || prod.imagemProduto; // Tenta os dois casos
+let oSrc = imagemPath ? `../../${imagemPath}` : '../../imgs/placeholder.png';      const precoVal = getField(prod, ['precoUnitario', 'precounitario', 'preco', 'price']);
       const nome = getField(prod, ['nomeProduto', 'nomeproduto', 'nome']) || 'Produto';
       const id = getField(prod, ['idProduto', 'idproduto', 'id']);
 
@@ -107,8 +107,7 @@ async function carregarProdutos() {
 window.irParaProduto = function(id) {
   if(!id) return;
   // Ajuste o caminho conforme necessário
-  window.location.href = `../produto/produto.html?id=${id}`;
-};
+window.location.href = `/frontend-Gerente/produtoGerente/produtoGerente.html?id=${id}`;};
 
 /**
  * Faz Logout
@@ -125,7 +124,7 @@ window.logout = logout; // Expondo globalmente para usar no HTML se precisar
  */
 function irParaCarrinho() {
     // Se tiver a função global definida em outro arquivo, usa ela, senão redireciona
-    window.location.href = '../carrinho/carrinho.html'; 
+    window.location.href = '/frontend-Gerente/carrinhoGerente/carrinhoGerente.html';  
 }
 window.irParaCarrinho = irParaCarrinho;
 
