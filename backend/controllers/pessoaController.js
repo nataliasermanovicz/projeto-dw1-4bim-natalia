@@ -1,240 +1,201 @@
-//import { query } from '../database.js';
 const { query } = require('../database');
-// Funções do controller
-
 const path = require('path');
- 
-exports.abrirCrudPessoa = (req, res) => {
-//  console.log('pessoaController - Rota /abrirCrudPessoa - abrir o crudPessoa');
-  res.sendFile(path.join(__dirname, '../../frontend-Gerente/pessoa/pessoa.html'));
-}  
 
+exports.abrirCrudPessoa = (req, res) => {
+  res.sendFile(path.join(__dirname, '../../frontend-Gerente/pessoa/pessoa.html'));
+} 
+
+// Listar
 exports.listarPessoas = async (req, res) => {
   try {
     const result = await query('SELECT * FROM pessoa ORDER BY cpfPessoa');
     res.json(result.rows);
   } catch (error) {
-    console.error('Erro ao listar pessoas:', error);
-    res.status(500).json({ error: 'Erro interno do servidor' });
+    console.error('Erro ao listar:', error);
+    res.status(500).json({ error: 'Erro interno' });
   }
 }
- 
+
+// CRIAR PESSOA
 exports.criarPessoa = async (req, res) => {
   try {
-    const { cpfPessoa, nomePessoa, emailPessoa, senhaPessoa, dataNascimentoPessoa, EnderecoIdEndereco } = req.body;
+    const { 
+        cpfPessoa, nomePessoa, emailPessoa, senhaPessoa, dataNascimentoPessoa, EnderecoIdEndereco,
+        isFuncionario, salario, CargosIdCargo,
+        isCliente, rendaCliente, dataDeCadastroCliente
+    } = req.body;
 
-    // Validação básica
     if (!cpfPessoa || !nomePessoa || !emailPessoa || !senhaPessoa) {
-      return res.status(400).json({
-        error: 'CPF, nome, email e senha são obrigatórios'
-      });
+      return res.status(400).json({ error: 'CPF, nome, email e senha são obrigatórios' });
     }
 
-    // Validação de email básica
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(emailPessoa)) {
-      return res.status(400).json({
-        error: 'Formato de email inválido'
-      });
-    }
+    // Tratamento de tipos para evitar erro de banco
+    const dataNasc = dataNascimentoPessoa || null;
+    const endereco = EnderecoIdEndereco ? parseInt(EnderecoIdEndereco) : null;
 
-    const result = await query(
-      'INSERT INTO pessoa (cpfPessoa, nomePessoa, emailPessoa, senhaPessoa, dataNascimentoPessoa, EnderecoIdEndereco) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [cpfPessoa, nomePessoa, emailPessoa, senhaPessoa, dataNascimentoPessoa, EnderecoIdEndereco]
+    // 1. Insere Pessoa
+    await query(
+      'INSERT INTO pessoa (cpfPessoa, nomePessoa, emailPessoa, senhaPessoa, dataNascimentoPessoa, EnderecoIdEndereco) VALUES ($1, $2, $3, $4, $5, $6)',
+      [cpfPessoa, nomePessoa, emailPessoa, senhaPessoa, dataNasc, endereco]
     );
 
-    res.status(201).json(result.rows[0]);
+    // 2. Se marcado como Funcionário, insere
+    if (isFuncionario === true || isFuncionario === 'true') {
+        const sal = salario ? parseFloat(salario) : 0;
+        const cargo = CargosIdCargo ? parseInt(CargosIdCargo) : null;
+        await query(
+            'INSERT INTO funcionario (PessoaCpfPessoa, salario, CargosIdCargo) VALUES ($1, $2, $3)',
+            [cpfPessoa, sal, cargo]
+        );
+    }
+
+    // 3. Se marcado como Cliente, insere
+    if (isCliente === true || isCliente === 'true') {
+        const renda = rendaCliente ? parseFloat(rendaCliente) : 0;
+        const dataCad = dataDeCadastroCliente || new Date();
+        await query(
+            'INSERT INTO cliente (PessoaCpfPessoa, rendaCliente, dataDeCadastroCliente) VALUES ($1, $2, $3)',
+            [cpfPessoa, renda, dataCad]
+        );
+    }
+
+    res.status(201).json({ message: 'Pessoa criada com sucesso', cpfPessoa });
+
   } catch (error) {
-    console.error('Erro ao criar pessoa:', error);
-
-    // Verifica se é erro de email duplicado (constraint unique violation)
-    if (error.code === '23505' && error.constraint === 'pessoa_emailPessoa_key') {
-      return res.status(400).json({
-        error: 'Email já está em uso'
-      });
-    }
-
-    // Verifica se é erro de violação de constraint NOT NULL
-    if (error.code === '23502') {
-      return res.status(400).json({
-        error: 'Dados obrigatórios não fornecidos'
-      });
-    }
-
+    console.error('Erro ao criar:', error);
+    if (error.code === '23505') return res.status(400).json({ error: 'CPF ou Email já cadastrados.' });
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 }
 
+// OBTER
 exports.obterPessoa = async (req, res) => {
   try {
-    const cpf = req.params.cpf; // CPF é string
+    const cpf = req.params.id;
+    if (!cpf) return res.status(400).json({ error: 'CPF obrigatório' });
 
-    if (!cpf) {
-      return res.status(400).json({ error: 'CPF é obrigatório' });
-    }
+    const sql = `
+        SELECT 
+            p.*,
+            f.salario, f.CargosIdCargo, 
+            c.rendaCliente, c.dataDeCadastroCliente
+        FROM Pessoa p
+        LEFT JOIN Funcionario f ON p.cpfPessoa = f.PessoaCpfPessoa
+        LEFT JOIN Cliente c ON p.cpfPessoa = c.PessoaCpfPessoa
+        WHERE p.cpfPessoa = $1
+    `;
+    const result = await query(sql, [cpf]);
 
-    const result = await query(
-      'SELECT * FROM pessoa WHERE cpfPessoa = $1',
-      [cpf]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Pessoa não encontrada' });
-    }
-
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Pessoa não encontrada' });
+    
     res.json(result.rows[0]);
   } catch (error) {
-    console.error('Erro ao obter pessoa:', error);
-    res.status(500).json({ error: 'Erro interno do servidor' });
+    console.error('Erro ao obter:', error);
+    res.status(500).json({ error: 'Erro interno' });
   }
 }
 
+// ATUALIZAR (Correções aplicadas aqui)
 exports.atualizarPessoa = async (req, res) => {
   try {
-    const cpf = req.params.cpf;
-    const { nomePessoa, emailPessoa, senhaPessoa, dataNascimentoPessoa, EnderecoIdEndereco } = req.body;
+    const cpf = req.params.id;
+    const { 
+        nomePessoa, emailPessoa, senhaPessoa, dataNascimentoPessoa, EnderecoIdEndereco,
+        isFuncionario, salario, CargosIdCargo,
+        isCliente, rendaCliente, dataDeCadastroCliente
+    } = req.body;
 
-    // Validação de email se fornecido
-    if (emailPessoa) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(emailPessoa)) {
-        return res.status(400).json({
-          error: 'Formato de email inválido'
-        });
-      }
-    }
-    // Verifica se a pessoa existe
-    const existingPersonResult = await query(
-      'SELECT * FROM pessoa WHERE cpfPessoa = $1',
-      [cpf]
-    );
+    console.log(`Atualizando CPF ${cpf}. Funcionario: ${isFuncionario}, Cliente: ${isCliente}`);
 
-    if (existingPersonResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Pessoa não encontrada' });
-    }
+    const dataNasc = dataNascimentoPessoa || null;
+    const endereco = EnderecoIdEndereco ? parseInt(EnderecoIdEndereco) : null;
 
-    // Atualiza a pessoa
-    const updateResult = await query(
+    // 1. Atualiza dados básicos da Pessoa
+    const updatePessoa = await query(
       'UPDATE pessoa SET nomePessoa = $1, emailPessoa = $2, senhaPessoa = $3, dataNascimentoPessoa = $4, EnderecoIdEndereco = $5 WHERE cpfPessoa = $6 RETURNING *',
-      [nomePessoa, emailPessoa, senhaPessoa, dataNascimentoPessoa, EnderecoIdEndereco, cpf]
+      [nomePessoa, emailPessoa, senhaPessoa, dataNasc, endereco, cpf]
     );
 
-    res.json(updateResult.rows[0]);
-  } catch (error) {
-    console.error('Erro ao atualizar pessoa:', error);
+    if (updatePessoa.rows.length === 0) return res.status(404).json({ error: 'Pessoa não encontrada' });
 
-    // Verifica se é erro de email duplicado
-    if (error.code === '23505' && error.constraint === 'pessoa_emailPessoa_key') {
-      return res.status(400).json({
-        error: 'Email já está em uso por outra pessoa'
-      });
+    // 2. GERENCIAR FUNCIONÁRIO
+    if (isFuncionario === true || isFuncionario === 'true') {
+        const sal = salario ? parseFloat(salario) : 0;
+        const cargo = CargosIdCargo ? parseInt(CargosIdCargo) : null;
+
+        // Tenta atualizar
+        const updateFunc = await query(
+            'UPDATE funcionario SET salario = $1, CargosIdCargo = $2 WHERE PessoaCpfPessoa = $3 RETURNING *',
+            [sal, cargo, cpf]
+        );
+        
+        // Se não atualizou nada, insere
+        if (updateFunc.rowCount === 0) {
+            console.log('Inserindo novo funcionário...');
+            await query(
+                'INSERT INTO funcionario (PessoaCpfPessoa, salario, CargosIdCargo) VALUES ($1, $2, $3)',
+                [cpf, sal, cargo]
+            );
+        }
+    } else {
+        // Se desmarcou, DELETA
+        console.log('Removendo funcionário...');
+        await query('DELETE FROM funcionario WHERE PessoaCpfPessoa = $1', [cpf]);
     }
 
-    res.status(500).json({ error: 'Erro interno do servidor' });
+    // 3. GERENCIAR CLIENTE
+    if (isCliente === true || isCliente === 'true') {
+        const renda = rendaCliente ? parseFloat(rendaCliente) : 0;
+        const dataCad = dataDeCadastroCliente || new Date();
+
+        // Tenta atualizar
+        const updateCli = await query(
+            'UPDATE cliente SET rendaCliente = $1, dataDeCadastroCliente = $2 WHERE PessoaCpfPessoa = $3 RETURNING *',
+            [renda, dataCad, cpf]
+        );
+        
+        // Se não atualizou, insere
+        if (updateCli.rowCount === 0) {
+            console.log('Inserindo novo cliente...');
+            await query(
+                'INSERT INTO cliente (PessoaCpfPessoa, rendaCliente, dataDeCadastroCliente) VALUES ($1, $2, $3)',
+                [cpf, renda, dataCad]
+            );
+        }
+    } else {
+        // Se desmarcou, DELETA
+        console.log('Removendo cliente...');
+        await query('DELETE FROM cliente WHERE PessoaCpfPessoa = $1', [cpf]);
+    }
+
+    res.json(updatePessoa.rows[0]);
+
+  } catch (error) {
+    console.error('Erro ao atualizar:', error);
+    // Erro de FK ao tentar deletar Funcionario/Cliente que tem Vendas/Pedidos
+    if (error.code === '23503') return res.status(400).json({ 
+        error: 'Atenção: Os dados da Pessoa foram salvos, mas não foi possível remover o perfil de Cliente/Funcionário pois existem Pedidos vinculados a ele.' 
+    });
+    res.status(500).json({ error: 'Erro interno' });
   }
 }
 
+// DELETAR
 exports.deletarPessoa = async (req, res) => {
   try {
-    const cpf = req.params.cpf;
-    // Verifica se a pessoa existe
-    const existingPersonResult = await query(
-      'SELECT * FROM pessoa WHERE cpfPessoa = $1',
-      [cpf]
-    );
+    const cpf = req.params.id;
 
-    if (existingPersonResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Pessoa não encontrada' });
-    }
+    await query('DELETE FROM funcionario WHERE PessoaCpfPessoa = $1', [cpf]);
+    await query('DELETE FROM cliente WHERE PessoaCpfPessoa = $1', [cpf]);
+    
+    const result = await query('DELETE FROM pessoa WHERE cpfPessoa = $1 RETURNING cpfPessoa', [cpf]);
 
-    // Deleta a pessoa (as constraints CASCADE cuidarão das dependências)
-    await query(
-      'DELETE FROM pessoa WHERE cpfPessoa = $1',
-      [cpf]
-    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Pessoa não encontrada' });
 
     res.status(204).send();
   } catch (error) {
-    console.error('Erro ao deletar pessoa:', error);
-
-    // Verifica se é erro de violação de foreign key (dependências)
-    if (error.code === '23503') {
-      return res.status(400).json({
-        error: 'Não é possível deletar pessoa com dependências associadas'
-      });
-    }
-
-    res.status(500).json({ error: 'Erro interno do servidor' });
-  }
-}
-
-// Função adicional para buscar pessoa por email
-exports.obterPessoaPorEmail = async (req, res) => {
-  try {
-    const { email } = req.params;
-
-    if (!email) {
-      return res.status(400).json({ error: 'Email é obrigatório' });
-    }
-
-    const result = await query(
-      'SELECT * FROM pessoa WHERE emailPessoa = $1',
-      [email]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Pessoa não encontrada' });
-    }
-
-    res.json(result.rows[0]);
-  } catch (error) {
-    console.error('Erro ao obter pessoa por email:', error);
-    res.status(500).json({ error: 'Erro interno do servidor' });
-  }
-}
-
-// Função para atualizar apenas a senha
-exports.atualizarSenha = async (req, res) => {
-  try {
-    const cpf = req.params.cpf;
-    const { senhaAtual, novaSenha } = req.body;
-
-    if (!cpf) {
-      return res.status(400).json({ error: 'CPF é obrigatório' });
-    }
-
-    if (!senhaAtual || !novaSenha) {
-      return res.status(400).json({
-        error: 'Senha atual e nova senha são obrigatórias'
-      });
-    }
-
-    // Verifica se a pessoa existe e a senha atual está correta
-    const personResult = await query(
-      'SELECT * FROM pessoa WHERE cpfPessoa = $1',
-      [cpf]
-    );
-
-    if (personResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Pessoa não encontrada' });
-    }
-
-    const person = personResult.rows[0];
-
-    // Verificação básica da senha atual (em produção, use hash)
-    if (person.senhaPessoa !== senhaAtual) {
-      return res.status(400).json({ error: 'Senha atual incorreta' });
-    }
-
-    // Atualiza apenas a senha
-    const updateResult = await query(
-      'UPDATE pessoa SET senhaPessoa = $1 WHERE cpfPessoa = $2 RETURNING cpfPessoa, nomePessoa, emailPessoa, dataNascimentoPessoa, EnderecoIdEndereco',
-      [novaSenha, cpf]
-    );
-
-    res.json(updateResult.rows[0]);
-  } catch (error) {
-    console.error('Erro ao atualizar senha:', error);
-    res.status(500).json({ error: 'Erro interno do servidor' });
+    console.error('Erro ao deletar:', error);
+    if (error.code === '23503') return res.status(400).json({ error: 'Não é possível deletar esta pessoa pois ela possui Pedidos ou outros vínculos.' });
+    res.status(500).json({ error: 'Erro interno' });
   }
 }
