@@ -84,6 +84,10 @@ const PagamentoHasFormaPagamentoRoutes = require('./routes/PagamentoHasFormaPaga
 app.use('/pagamento_has_forma_pagamento', PagamentoHasFormaPagamentoRoutes);
 const loginRoutes = require('./routes/loginRoutes');
 app.use('/login', loginRoutes);
+const relatorioVendasRoutes = require('./routes/relatorioVendasRoutes');
+app.use('/relatorioVendas', relatorioVendasRoutes);
+const relatorioClientesRoutes = require('./routes/relatorioClientesRoutes');
+app.use('/relatorioClientes', relatorioClientesRoutes);
 
 app.get('/', (req, res) => {
   res.json({

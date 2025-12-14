@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Clientes</title>
+    <link rel="stylesheet" href="/frontend-Gerente/relatorios/relatorioClientes.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header class="report-header">
+        <h1>Relatório de Novos Clientes</h1>
+        <p id="periodoTexto">Selecione um período para visualizar</p>
+        <p class="data-emissao">Emitido em: <span id="dataHoje"></span></p>
+    </header>
+
+    <section class="filters no-print">
+        <form id="filtroForm">
+            <div class="input-group">
+                <label>Data Início (Cadastro):</label>
+                <input type="date" id="dataInicio" required>
+            </div>
+            <div class="input-group">
+                <label>Data Fim:</label>
+                <input type="date" id="dataFim" required>
+            </div>
+            <button type="submit" id="btnGerar">👥 Gerar Relatório</button>
+            <button type="button" onclick="window.print()" class="btn-print">🖨️ Imprimir</button>
+        </form>
+    </section>
+
+    <section class="dashboard">
+        <div class="card">
+            <h3>Novos Clientes</h3>
+            <p id="qtdClientes">0</p>
+        </div>
+        <div class="card">
+            <h3>Renda Média</h3>
+            <p id="rendaMedia">R$ 0,00</p>
+        </div>
+        <div class="card">
+            <h3>Soma das Rendas</h3>
+            <p id="somaRendas">R$ 0,00</p>
+        </div>
+    </section>
+
+    <main>
+        <table>
+            <thead>
+                <tr>
+                    <th>CPF</th>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>Data Cadastro</th>
+                    <th class="text-right">Renda Mensal</th>
+                </tr>
+            </thead>
+            <tbody id="tabelaCorpo">
+                </tbody>
+        </table>
+    </main>
+
+    <div id="mensagemSemDados" style="display:none; text-align:center; margin-top:20px; color:#666;">
+        Nenhum cliente cadastrado neste período.
+    </div>
+
+    <script src="/frontend-Gerente/relatorios/relatorioClientes.js"></script>
+</body>
+</html>

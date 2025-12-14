@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Vendas</title>
+    <link rel="stylesheet" href="/frontend-Gerente/relatorios/relatorioVendas.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+</head>
+<body> 
+
+    <header class="report-header">
+        <h1>Relatório de Vendas</h1>
+        <p id="periodoTexto">Selecione um período para gerar o relatório</p>
+        <p class="data-emissao">Emitido em: <span id="dataHoje"></span></p>
+    </header>
+
+    <section class="filters no-print">
+        <form id="filtroForm">
+            <div class="input-group">
+                <label>Data Início:</label>
+                <input type="date" id="dataInicio" required>
+            </div>
+            <div class="input-group">
+                <label>Data Fim:</label>
+                <input type="date" id="dataFim" required>
+            </div>
+            <button type="submit" id="btnGerar">📊 Gerar Relatório</button>
+            <button type="button" onclick="window.print()" class="btn-print">🖨️ Imprimir</button>
+        </form>
+    </section>
+
+    <section class="dashboard">
+        <div class="card">
+            <h3>Total de Vendas</h3>
+            <p id="qtdVendas">0</p>
+        </div>
+        <div class="card">
+            <h3>Faturamento Total</h3>
+            <p id="totalFaturamento">R$ 0,00</p>
+        </div>
+        <div class="card">
+            <h3>Ticket Médio</h3>
+            <p id="ticketMedio">R$ 0,00</p>
+        </div>
+    </section>
+
+    <main>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Data</th>
+                    <th>Cliente</th>
+                    <th>Forma Pagto.</th>
+                    <th class="text-right">Valor (R$)</th>
+                </tr>
+            </thead>
+            <tbody id="tabelaCorpo">
+                </tbody>
+        </table>
+    </main>
+
+    <div id="mensagemSemDados" style="display:none; text-align:center; margin-top:20px; color:#666;">
+        Nenhuma venda encontrada neste período.
+    </div>
+
+    <script src="/frontend-Gerente/relatorios/relatorioVendas.js"></script>
+</body>
+</html>
