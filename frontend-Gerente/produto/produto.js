@@ -1,12 +1,14 @@
 // Configuração da API
 const API_BASE_URL = 'http://localhost:3001';
-let currentPersonId = null;
+let currentId = null;
 let operacao = null;
 
-// Elementos do DOM - Verifique se estes IDs existem no seu HTML
-const form = document.getElementById('forma_pagamentoForm'); 
+// Elementos do DOM
 const searchId = document.getElementById('searchId');
-const inputNome = document.getElementById('nomeformapagamento'); 
+const inputNome = document.getElementById('nomeProduto');
+const inputImagem = document.getElementById('imagemProduto');
+const inputQtd = document.getElementById('quantidadeEmEstoque');
+const inputPreco = document.getElementById('precoUnitario');
 
 const btnBuscar = document.getElementById('btnBuscar');
 const btnIncluir = document.getElementById('btnIncluir');
@@ -14,7 +16,7 @@ const btnAlterar = document.getElementById('btnAlterar');
 const btnExcluir = document.getElementById('btnExcluir');
 const btnCancelar = document.getElementById('btnCancelar');
 const btnSalvar = document.getElementById('btnSalvar');
-const tabelaBody = document.getElementById('forma_pagamentosTableBody'); 
+const tableBody = document.getElementById('produtosTableBody');
 const messageContainer = document.getElementById('messageContainer');
 
 // Inicialização
@@ -47,11 +49,19 @@ function mostrarMensagem(texto, tipo = 'info') {
 
 function bloquearCampos(isSearchMode) {
     if (searchId) searchId.disabled = isSearchMode;
-    if (inputNome) inputNome.disabled = !isSearchMode;
+    
+    // Libera os campos apenas se estiver em modo de edição/inclusão
+    inputNome.disabled = !isSearchMode;
+    inputImagem.disabled = !isSearchMode;
+    inputQtd.disabled = !isSearchMode;
+    inputPreco.disabled = !isSearchMode;
 }
 
 function limparFormulario() {
-    if (inputNome) inputNome.value = '';
+    inputNome.value = '';
+    inputImagem.value = '';
+    inputQtd.value = '';
+    inputPreco.value = '';
 }
 
 function mostrarBotoes(btBuscar, btIncluir, btAlterar, btExcluir, btSalvar, btCancelar) {
@@ -67,31 +77,27 @@ function mostrarBotoes(btBuscar, btIncluir, btAlterar, btExcluir, btSalvar, btCa
 
 async function carregarLista() {
     try {
-        const response = await fetch(`${API_BASE_URL}/formadepagamento`);
+        const response = await fetch(`${API_BASE_URL}/produto`);
         if (response.ok) {
             const lista = await response.json();
             renderizarTabela(lista);
         } else {
-            throw new Error('Erro ao carregar dados: ' + response.statusText);
+            throw new Error('Erro ao carregar dados');
         }
     } catch (error) {
         console.error('Erro:', error);
-        mostrarMensagem('Erro ao carregar lista: ' + error.message, 'error');
+        mostrarMensagem('Erro ao carregar lista.', 'error');
     }
 }
 
 function renderizarTabela(lista) {
-    if (!tabelaBody) {
-        console.error("Erro: Tabela não encontrada no HTML (id='forma_pagamentosTableBody')");
-        return;
-    }
-    
-    tabelaBody.innerHTML = '';
-    
+    tableBody.innerHTML = '';
     lista.forEach(item => {
-        // Tenta ler com minúsculas (padrão Postgres) e CamelCase (se vier do alias)
-        const id = item.idformapagamento || item.idFormaPagamento;
-        const nome = item.nomeformapagamento || item.nomeFormaPagamento;
+        // Leitura tolerante: Tenta minúsculo (banco) e CamelCase
+        const id = item.idproduto || item.idProduto;
+        const nome = item.nomeproduto || item.nomeProduto;
+        const qtd = item.quantidadeemestoque || item.quantidadeEmEstoque;
+        const preco = item.precounitario || item.precoUnitario;
 
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -101,8 +107,10 @@ function renderizarTabela(lista) {
                 </button>
             </td>
             <td>${nome}</td>
+            <td>${qtd}</td>
+            <td>R$ ${parseFloat(preco).toFixed(2)}</td>
         `;
-        tabelaBody.appendChild(row);
+        tableBody.appendChild(row);
     });
 }
 
@@ -119,17 +127,18 @@ async function buscarRegistro() {
     }
     
     try {
-        const response = await fetch(`${API_BASE_URL}/formadepagamento/${id}`);
+        const response = await fetch(`${API_BASE_URL}/produto/${id}`);
         if (response.ok) {
             const item = await response.json();
             
-            // Padronização de leitura
-            const itemId = item.idformapagamento || item.idFormaPagamento;
-            const itemNome = item.nomeformapagamento || item.nomeFormaPagamento;
-
-            currentPersonId = itemId;
-            searchId.value = itemId;
-            inputNome.value = itemNome || '';
+            // ATENÇÃO: Seu produtoController retorna aliases (id_produto, nome_produto...)
+            currentId = item.id_produto || item.idproduto;
+            searchId.value = currentId;
+            
+            inputNome.value = item.nome_produto || item.nomeproduto || '';
+            inputImagem.value = item.imagem_produto || item.imagemproduto || '';
+            inputQtd.value = item.quantidade_em_estoque || item.quantidadeemestoque || 0;
+            inputPreco.value = item.preco_unitario || item.precounitario || 0;
 
             mostrarBotoes(true, false, true, true, false, false);
             mostrarMensagem('Encontrado!', 'success');
@@ -137,7 +146,7 @@ async function buscarRegistro() {
         } else if (response.status === 404) {
             limparFormulario();
             searchId.value = id;
-            currentPersonId = null;
+            currentId = null;
             mostrarBotoes(true, true, false, false, false, false);
             mostrarMensagem('Não encontrado. Pode incluir.', 'info');
             bloquearCampos(false);
@@ -151,8 +160,10 @@ async function buscarRegistro() {
 function incluirRegistro() {
     operacao = 'incluir';
     
-    currentPersonId = searchId.value; 
-    
+    // Limpa ID para auto-incremento
+    searchId.value = ''; 
+    currentId = null;
+
     limparFormulario();
     bloquearCampos(true); 
     mostrarBotoes(false, false, false, false, true, true);
@@ -169,7 +180,7 @@ function alterarRegistro() {
 }
 
 function excluirRegistro() {
-    if (!currentPersonId) {
+    if (!currentId) {
         mostrarMensagem('Busque primeiro.', 'warning');
         return;
     }
@@ -182,7 +193,7 @@ function cancelarOperacao() {
     limparFormulario();
     searchId.value = '';
     operacao = null;
-    currentPersonId = null;
+    currentId = null;
     mostrarBotoes(true, false, false, false, false, false);
     bloquearCampos(false);
     searchId.disabled = false;
@@ -192,20 +203,25 @@ function cancelarOperacao() {
 
 async function salvarOperacao() {
     const valorNome = inputNome.value;
+    const valorImagem = inputImagem.value;
+    const valorQtd = inputQtd.value;
+    const valorPreco = inputPreco.value;
+    
+    // ID vazio = Null (para auto-incremento funcionar)
     const valorId = (searchId.value && searchId.value.trim() !== '') ? searchId.value : null;
 
-    if (operacao !== 'excluir' && (!valorNome || valorNome.trim() === '')) {
-        mostrarMensagem('Nome é obrigatório!', 'warning');
+    if (operacao !== 'excluir' && (!valorNome || !valorQtd || !valorPreco)) {
+        mostrarMensagem('Nome, Qtd e Preço são obrigatórios!', 'warning');
         return;
     }
 
-    // =======================================================
-    // ENVIO DE DADOS (IMPORTANTE: CASE SENSITIVE)
-    // O backend espera: idFormaPagamento e nomeFormaPagamento
-    // =======================================================
+    // JSON com as chaves que o criarProduto espera
     const dados = {
-        idFormaPagamento: valorId,
-        nomeFormaPagamento: valorNome
+        idProduto: valorId,
+        nomeProduto: valorNome,
+        imagemProduto: valorImagem,
+        quantidadeEmEstoque: parseInt(valorQtd),
+        precoUnitario: parseFloat(valorPreco)
     };
 
     let response = null;
@@ -213,19 +229,19 @@ async function salvarOperacao() {
 
     try {
         if (operacao === 'incluir') {
-            response = await fetch(`${API_BASE_URL}/formadepagamento`, {
+            response = await fetch(`${API_BASE_URL}/produto`, {
                 method: 'POST',
                 headers: headers,
                 body: JSON.stringify(dados)
             });
         } else if (operacao === 'alterar') {
-            response = await fetch(`${API_BASE_URL}/formadepagamento/${currentPersonId}`, {
+            response = await fetch(`${API_BASE_URL}/produto/${currentId}`, {
                 method: 'PUT',
                 headers: headers,
                 body: JSON.stringify(dados)
             });
         } else if (operacao === 'excluir') {
-            response = await fetch(`${API_BASE_URL}/formadepagamento/${currentPersonId}`, {
+            response = await fetch(`${API_BASE_URL}/produto/${currentId}`, {
                 method: 'DELETE'
             });
         }
@@ -238,7 +254,7 @@ async function salvarOperacao() {
             bloquearCampos(false);
             carregarLista();
             operacao = null;
-            currentPersonId = null;
+            currentId = null;
         } else {
             const err = await response.json();
             mostrarMensagem(err.error || 'Erro na operação', 'error');

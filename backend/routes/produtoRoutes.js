@@ -2,14 +2,28 @@ const express = require('express');
 const router = express.Router();
 const produtoController = require('../controllers/produtoController');
 
-// CRUD de Produtos
+// Middleware de debug (Opcional, mas útil)
+router.use((req, res, next) => {
+    console.log(`[Produto Route] ${req.method} ${req.path}`);
+    next();
+});
 
-router.get('/', produtoController.listarProdutos);
-router.post('/', produtoController.criarProduto);
-router.get('/:id', produtoController.obterProduto);
-// não tem atualizar produto
-router.delete('/:id', produtoController.deletarProduto);
-//router.get('/img/:nome', produtoController.buscarImagem);
+// --- Rota para abrir o HTML (IMPORTANTE: Deve vir PRIMEIRO) ---
+router.get('/tela-edicao', produtoController.abrirCrudProduto);
+
+// CRUD de Produtos
+router.get('/', produtoController.listarProdutos);       // Listar todos
+router.post('/', produtoController.criarProduto);        // Criar novo
+router.get('/:id', produtoController.obterProduto);      // Buscar por ID
+
+// =================================================================
+// CORREÇÃO: Adicionando a rota PUT que estava faltando
+// =================================================================
+router.put('/:id', produtoController.atualizarProduto); 
+
+router.delete('/:id', produtoController.deletarProduto); // Deletar
+
+// Rota para imagem (se estiver usando)
+router.get('/img/:nome', produtoController.buscarImagem);
+
 module.exports = router;
- 
-router.get('/', produtoController.abrirProduto);

@@ -79,7 +79,7 @@ app.use('/PedidoHasProduto', PedidoHasProdutoRoutes);
 const pagamentoRoutes = require('./routes/pagamentoRoutes');
 app.use('/pagamento', pagamentoRoutes);
 const FormaDePagamentoRoutes = require('./routes/FormaDePagamentoRoutes');
-app.use('/forma_pagamento', FormaDePagamentoRoutes);
+app.use('/formadepagamento', FormaDePagamentoRoutes);
 const PagamentoHasFormaPagamentoRoutes = require('./routes/PagamentoHasFormaPagamentoRoutes');
 app.use('/pagamento_has_forma_pagamento', PagamentoHasFormaPagamentoRoutes);
 const loginRoutes = require('./routes/loginRoutes');

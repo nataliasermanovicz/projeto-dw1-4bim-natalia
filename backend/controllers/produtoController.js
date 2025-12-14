@@ -1,16 +1,13 @@
-//import { query } from '../database.js';
 const { query } = require('../database');
-// Funções do controller
-
 const path = require('path');
 
 exports.abrirCrudProduto = (req, res) => {
-//  console.log('produtoController - Rota /abrirCrudProduto - abrir o crudProduto');
-  res.sendFile(path.join(__dirname, '../../html/produto/produto.html'));
+  // Ajuste do caminho correto para a pasta frontend-Gerente
+  res.sendFile(path.join(__dirname, '../../frontend-Gerente/produto/produto.html'));
 } 
 
 exports.abrirProduto = (req, res) => {
-    console.log('produtoController - Rota /produto - Acessando produto.html');
+    // Rota pública de produto (loja)
     res.sendFile(path.join(__dirname, '../../frontend/produto/produto.html'));
 };
 
@@ -26,33 +23,35 @@ exports.listarProdutos = async (req, res) => {
 
 exports.criarProduto = async (req, res) => {
   try {
-    const { idProduto, nomeProduto, quantidadeEmEstoque, precoUnitario } = req.body;
+    const { idProduto, nomeProduto, quantidadeEmEstoque, precoUnitario, imagemProduto } = req.body;
 
-    // Validação básica
-    if (!idProduto || !nomeProduto || !quantidadeEmEstoque || !precoUnitario) {
+    // Validação básica (ID não é obrigatório para inclusão)
+    if (!nomeProduto || !quantidadeEmEstoque || !precoUnitario) {
       return res.status(400).json({
-        error: 'ID e nome são obrigatórios'
+        error: 'Nome, Quantidade e Preço são obrigatórios'
       });
     }
 
-
-    const result = await query(
-      'INSERT INTO produto (idProduto, nomeProduto, quantidadeEmEstoque, precoUnitario) VALUES ($1, $2, $3, $4) RETURNING *',
-      [idProduto, nomeProduto, quantidadeEmEstoque, precoUnitario]
-    );
+    let result;
+    // Se ID foi fornecido, usa ele. Se não, deixa o banco criar (Serial).
+    if (idProduto && String(idProduto).trim() !== '') {
+        result = await query(
+            'INSERT INTO produto (idProduto, nomeProduto, quantidadeEmEstoque, precoUnitario, imagemProduto) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+            [idProduto, nomeProduto, quantidadeEmEstoque, precoUnitario, imagemProduto]
+        );
+    } else {
+        result = await query(
+            'INSERT INTO produto (nomeProduto, quantidadeEmEstoque, precoUnitario, imagemProduto) VALUES ($1, $2, $3, $4) RETURNING *',
+            [nomeProduto, quantidadeEmEstoque, precoUnitario, imagemProduto]
+        );
+    }
 
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('Erro ao criar produto:', error);
-
-
-    // Verifica se é erro de violação de constraint NOT NULL
     if (error.code === '23502') {
-      return res.status(400).json({
-        error: 'Dados obrigatórios não fornecidos'
-      });
+      return res.status(400).json({ error: 'Dados obrigatórios faltando.' });
     }
-
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 }
@@ -60,15 +59,9 @@ exports.criarProduto = async (req, res) => {
 exports.obterProduto = async (req, res) => {
   try {
     const id = req.params.id;
+    if (!id) return res.status(400).json({ error: 'ID é obrigatório' });
 
-    if (!id) {
-      return res.status(400).json({ error: 'ID é obrigatório' });
-    }
-
-    // =================================================================
-    // CORREÇÃO: Usando ALIAS (AS) para bater com o frontend (pedido.js)
-    // frontend espera: id_produto, nome_produto, preco_unitario
-    // =================================================================
+    // Mantendo os Aliases para compatibilidade com o pedido.js
     const querySQL = `
         SELECT 
             idProduto AS id_produto,
@@ -96,36 +89,21 @@ exports.obterProduto = async (req, res) => {
 exports.atualizarProduto = async (req, res) => {
   try {
     const id = req.params.id;
-    const { nomeProduto, quantidadeEmEstoque, precoUnitario } = req.body;
+    const { nomeProduto, quantidadeEmEstoque, precoUnitario, imagemProduto } = req.body;
 
-
-    // Verifica se a produto existe
-    const existingPersonResult = await query(
-      'SELECT * FROM produto WHERE idProduto = $1',
-      [id]
-    );
-
+    const existingPersonResult = await query('SELECT * FROM produto WHERE idProduto = $1', [id]);
     if (existingPersonResult.rows.length === 0) {
       return res.status(404).json({ error: 'Produto não encontrada' });
     }
 
-    // Atualiza a produto
     const updateResult = await query(
-      'UPDATE produto SET nomeProduto = $1, quantidadeEmEstoque = $2, precoUnitario = $3 WHERE idProduto = $4 RETURNING *',
-      [nomeProduto, quantidadeEmEstoque, precoUnitario, id]
+      'UPDATE produto SET nomeProduto = $1, quantidadeEmEstoque = $2, precoUnitario = $3, imagemProduto = $4 WHERE idProduto = $5 RETURNING *',
+      [nomeProduto, quantidadeEmEstoque, precoUnitario, imagemProduto, id]
     );
 
     res.json(updateResult.rows[0]);
   } catch (error) {
     console.error('Erro ao atualizar produto:', error);
-
-    // Verifica se é erro de email duplicado
-    if (error.code === '23505' && error.constraint === 'produto_quantidadeEmEstoque_key') {
-      return res.status(400).json({
-        error: 'Email já está em uso por outra produto'
-      });
-    }
-
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 }
@@ -133,42 +111,30 @@ exports.atualizarProduto = async (req, res) => {
 exports.deletarProduto = async (req, res) => {
   try {
     const id = req.params.id;
-    // Verifica se a produto existe
-    const existingPersonResult = await query(
-      'SELECT * FROM produto WHERE idProduto = $1',
-      [id]
-    );
+    
+    // Antes de deletar, idealmente verificamos se está em pedidos
+    // Se estiver, o banco vai bloquear (Erro 23503)
+    const result = await query('DELETE FROM produto WHERE idProduto = $1 RETURNING idProduto', [id]);
 
-    if (existingPersonResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Produto não encontrada' });
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Produto não encontrado' });
     }
-
-    // Deleta a produto (as constraints CASCADE cuidarão das dependências)
-    await query(
-      'DELETE FROM produto WHERE idProduto = $1',
-      [id]
-    );
 
     res.status(204).send();
   } catch (error) {
     console.error('Erro ao deletar produto:', error);
-
-    // Verifica se é erro de violação de foreign key (dependências)
     if (error.code === '23503') {
-      return res.status(400).json({
-        error: 'Não é possível deletar produto com dependências associadas'
+      return res.status(400).json({ 
+        error: 'Não é possível deletar este produto pois ele faz parte de pedidos existentes.' 
       });
     }
-
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 }
 
-
 exports.buscarImagem = (req, res) => {
   const nome = req.params.nome;
   const caminhoImagem = path.join(__dirname, '../../imgs', nome);
-
   res.sendFile(caminhoImagem, (err) => {
     if (err) {
       console.error('Erro ao enviar imagem:', err);
@@ -176,4 +142,3 @@ exports.buscarImagem = (req, res) => {
     }
   });
 };
-

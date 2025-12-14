@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD - Produto</title>
+    <link rel="stylesheet" href="/frontend-Gerente/cargo/cargo.css"> <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="messageContainer" class="message-container"></div>
+
+    <header>
+        <h1>CRUD Produto</h1>
+    </header>
+
+    <main>
+        <section class="form-section">
+            <h2>Cadastro de Produto</h2>
+
+            <form id="produtoForm">
+                <div class="search-container">
+                    <label for="searchId">Buscar por ID:</label>
+                    <div class="search-input-group">
+                        <input type="number" id="searchId" placeholder="Digite o ID para buscar">
+                        <button type="button" id="btnBuscar">🔍 Buscar</button>
+
+                        <button type="button" id="btnIncluir" class="btn-primary">Incluir</button>
+                        <button type="button" id="btnAlterar" class="btn-secondary" style="display: none;">Alterar</button>
+                        <button type="button" id="btnExcluir" class="btn-danger" style="display: none;">Excluir</button>
+                        <button type="button" id="btnSalvar" class="btn-save" style="display: none;">Salvar</button>
+                        <button type="button" id="btnCancelar" class="btn-cancel">Cancelar</button>
+                    </div>
+                </div>
+
+                <fieldset id="formFields">
+                    <legend>Dados do Produto</legend>
+
+                    <div class="form-group">
+                        <label for="nomeProduto">Nome do Produto:</label>
+                        <input type="text" id="nomeProduto" name="nomeProduto" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="imagemProduto">Caminho da Imagem:</label>
+                        <input type="text" id="imagemProduto" name="imagemProduto" placeholder="Ex: imgs/foto.jpg">
+                    </div>
+
+                    <div style="display: flex; gap: 20px;">
+                        <div class="form-group" style="flex: 1;">
+                            <label for="quantidadeEmEstoque">Estoque:</label>
+                            <input type="number" id="quantidadeEmEstoque" name="quantidadeEmEstoque" required>
+                        </div>
+
+                        <div class="form-group" style="flex: 1;">
+                            <label for="precoUnitario">Preço (R$):</label>
+                            <input type="number" id="precoUnitario" name="precoUnitario" step="0.01" required>
+                        </div>
+                    </div>
+                </fieldset>
+            </form>
+        </section>
+
+        <section class="list-section">
+            <div class="table-container">
+                <table id="produtosTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Qtd</th>
+                            <th>Preço</th>
+                        </tr>
+                    </thead>
+                    <tbody id="produtosTableBody">
+                        </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 CRUD Produto</p>
+    </footer>
+
+    <script src="/frontend-Gerente/produto/produto.js"></script>
+
+</body>
+</html>

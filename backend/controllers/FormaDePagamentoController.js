@@ -1,11 +1,10 @@
-//import { query } from '../database.js';
 const { query } = require('../database');
-// Funções do controller
-
 const path = require('path');
 
 exports.abrirCrudFormaDePagamento = (req, res) => {
-//  console.log('formadepagamentoController - Rota /abrirCrudFormaDePagamento - abrir o crudFormaDePagamento');
+  // CORREÇÃO AQUI: Adicionado o underline no nome da pasta e do arquivo
+  // De: .../formadepagamento/formadepagamento.html
+  // Para: .../forma_pagamento/forma_pagamento.html
   res.sendFile(path.join(__dirname, '../../frontend-Gerente/forma_pagamento/forma_pagamento.html'));
 } 
 
@@ -23,55 +22,47 @@ exports.criarFormaDePagamento = async (req, res) => {
   try {
     const { idFormaPagamento, nomeFormaPagamento } = req.body;
 
-    // Validação básica
-    if (!idFormaPagamento) {
-      return res.status(400).json({
-        error: 'ID é obrigatório'
-      });
+    if (!nomeFormaPagamento) {
+      return res.status(400).json({ error: 'Nome é obrigatório' });
     }
 
-
-    const result = await query(
-      'INSERT INTO formadepagamento (idFormaPagamento, nomeFormaPagamento) VALUES ($1, $2) RETURNING *',
-      [idFormaPagamento, nomeFormaPagamento]
-    );
+    let result;
+    
+    if (idFormaPagamento && String(idFormaPagamento).trim() !== '') {
+        result = await query(
+            'INSERT INTO formadepagamento (idFormaPagamento, nomeFormaPagamento) VALUES ($1, $2) RETURNING *',
+            [idFormaPagamento, nomeFormaPagamento]
+        );
+    } else {
+        result = await query(
+            'INSERT INTO formadepagamento (nomeFormaPagamento) VALUES ($1) RETURNING *',
+            [nomeFormaPagamento]
+        );
+    }
 
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('Erro ao criar formadepagamento:', error);
-
-
-    // Verifica se é erro de violação de constraint NOT NULL
     if (error.code === '23502') {
-      return res.status(400).json({
-        error: 'Dados obrigatórios não fornecidos'
-      });
+      return res.status(400).json({ error: 'Dados obrigatórios não fornecidos' });
     }
-
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 }
 
 exports.obterFormaDePagamento = async (req, res) => {
   try {
-    const id = req.params.id; // ID é string
+    const id = req.params.id;
+    if (!id) return res.status(400).json({ error: 'ID é obrigatório' });
 
-    if (!id) {
-      return res.status(400).json({ error: 'ID é obrigatório' });
-    }
-
-    const result = await query(
-      'SELECT * FROM formadepagamento WHERE idFormaPagamento = $1',
-      [id]
-    );
+    const result = await query('SELECT * FROM formadepagamento WHERE idFormaPagamento = $1', [id]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'FormaDePagamento não encontrada' });
     }
-
     res.json(result.rows[0]);
   } catch (error) {
-    console.error('Erro ao obter formadepagamento:', error);
+    console.error('Erro ao obter:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 }
@@ -81,27 +72,19 @@ exports.atualizarFormaDePagamento = async (req, res) => {
     const id = req.params.id;
     const { nomeFormaPagamento } = req.body;
 
-
-    // Verifica se a formadepagamento existe
-    const existingPersonResult = await query(
-      'SELECT * FROM formadepagamento WHERE idFormaPagamento = $1',
-      [id]
-    );
-
-    if (existingPersonResult.rows.length === 0) {
-      return res.status(404).json({ error: 'FormaDePagamento não encontrada' });
+    const existingResult = await query('SELECT * FROM formadepagamento WHERE idFormaPagamento = $1', [id]);
+    if (existingResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Registro não encontrado' });
     }
 
-    // Atualiza a formadepagamento
     const updateResult = await query(
       'UPDATE formadepagamento SET nomeFormaPagamento = $1 WHERE idFormaPagamento = $2 RETURNING *',
-      [nomeFormaPagamento, quantidadeEmEstoque, precoUnitario, id]
+      [nomeFormaPagamento, id]
     );
 
     res.json(updateResult.rows[0]);
   } catch (error) {
-    console.error('Erro ao atualizar formadepagamento:', error);
-
+    console.error('Erro ao atualizar:', error);
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 }
@@ -109,33 +92,19 @@ exports.atualizarFormaDePagamento = async (req, res) => {
 exports.deletarFormaDePagamento = async (req, res) => {
   try {
     const id = req.params.id;
-    // Verifica se a formadepagamento existe
-    const existingPersonResult = await query(
-      'SELECT * FROM formadepagamento WHERE idFormaPagamento = $1',
-      [id]
-    );
+    
+    const result = await query('DELETE FROM formadepagamento WHERE idFormaPagamento = $1 RETURNING idFormaPagamento', [id]);
 
-    if (existingPersonResult.rows.length === 0) {
-      return res.status(404).json({ error: 'FormaDePagamento não encontrada' });
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Registro não encontrado' });
     }
-
-    // Deleta a formadepagamento (as constraints CASCADE cuidarão das dependências)
-    await query(
-      'DELETE FROM formadepagamento WHERE idFormaPagamento = $1',
-      [id]
-    );
 
     res.status(204).send();
   } catch (error) {
-    console.error('Erro ao deletar formadepagamento:', error);
-
-    // Verifica se é erro de violação de foreign key (dependências)
+    console.error('Erro ao deletar:', error);
     if (error.code === '23503') {
-      return res.status(400).json({
-        error: 'Não é possível deletar formadepagamento com dependências associadas'
-      });
+      return res.status(400).json({ error: 'Não é possível deletar pois existem pagamentos usando esta forma.' });
     }
-
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 }
